@@ -6,6 +6,7 @@ ChatGPT × Claude 協作的手機網頁遊戲專案：**《宅男勇者的人生
 |---|---|
 | `index.html` | 已確認可在 iPhone 正常點開始的極簡測試版（請勿覆蓋） |
 | `game/` | 第一章正式版：橫式 Q 版 RPG「無法通關的新手村」 |
+| `docs/HANDOFF.md` | 開發交接報告（Claude → ChatGPT） |
 
 ## 第一章怎麼玩
 
