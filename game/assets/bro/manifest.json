@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "source": "approved-walk-v3-and-six-portraits",
+  "archive_sha256": "0fc5e6f8915d1b6c33a8687ea2ca0e9aeca20c5a1370f7fad5287d2aab5eb7bd",
+  "files": {
+    "bro_down_0.png": "715851fa1f8da6150bcc15cd85341ff7bdbe39bd888afc2a7005ef05e156f3e8",
+    "bro_down_1.png": "7a82281882ce575c579f478825436a87b0f899321026c56ceebb18f5d5a5915f",
+    "bro_down_2.png": "de5baf5b9da3c4da987d915c66661ecab36c67da39a5c7b0d7115a9f31c09d0b",
+    "bro_down_3.png": "913b763d5059e86aa2ee16351c63b2e716db98500487c2f320e99aebf2bf5d3a",
+    "bro_up_0.png": "b1251857367389adcd78b64809621f35dbf5c864aee10d8ae0234949320de988",
+    "bro_up_1.png": "7bc3429d2138836ad486f688ccda27b8e7579a1d9a981bfec9c509bb522958ba",
+    "bro_up_2.png": "68bb0aae5ba063eca16bd0a5032e88bc135a5e18f864f9e649aa148020783086",
+    "bro_up_3.png": "7a0e2e72b7c8ce42b0380ce69184d48a8e9520fa6e36607336badbfe042154e7",
+    "bro_left_0.png": "704b2cb4ab1fba87607067190595d6ac201839eda4a0cc90ad30051548b9d737",
+    "bro_left_1.png": "149e31585cbc34b600990a6cb4cee93ebb7926e6003bdcc2ce0b8617e54ac0a5",
+    "bro_left_2.png": "ab17a723588e1d12cfa16c4c72cbe920f5ac3470e6763099f2168dcddda9d91a",
+    "bro_left_3.png": "79db8a76e967c93a742f08a42a9f4fcfd100bf930e7169f69ed4746d19feef46",
+    "bro_right_0.png": "adffb12fb9abe5382ebc286ef451b982c2b05dc510b5cc0efa5e2ecbcde2eafc",
+    "bro_right_1.png": "4644fa1f504238a1b6739f56ce4f979cf16fd0124dd0f483889bef35d73e77a3",
+    "bro_right_2.png": "375b250de1cb8355abc9a5283f6125eb61083e7b169b744659fd87fd18a50dcf",
+    "bro_right_3.png": "cabb1377e3458d459212779fd88e3d2f5704becf359b472913844b4b0705b71a",
+    "bro_relax.png": "1dc91345effcd5a63067911023d6ad38fba1b27b9d9da5a7de1d3f8ee2cbfaeb",
+    "bro_laugh.png": "b25d801aabe8e5349c77517f13b47f5865b27fd087f26db4c5f526b2bf697ff3",
+    "bro_smug.png": "31b1987ba9d2cb62a3dddf948cb8b9b227bc0ed65569de0041b9b9fbae7dfd7f",
+    "bro_nagged.png": "02284c149bebf053833a4227035166ef76be7d50935f9decf4d74aca4c003223",
+    "bro_panic.png": "d72189194880bb511e138873e82ea0be69934e79ac23d27b322f55ca7344eeb2",
+    "bro_gentle.png": "9ec3c5db879277d19c047913ea9450314e5a8c96f774578c9dcc34381e2b91b8"
+  }
+}
