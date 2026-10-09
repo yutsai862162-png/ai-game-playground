@@ -1,0 +1,84 @@
+name: Import approved hero PNGs
+on:
+  push:
+    branches: [gpt/hero-art-integration]
+    paths: [_incoming/hero-import.json]
+permissions:
+  contents: write
+concurrency:
+  group: approved-hero-png-import
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPOSITORY: ${{ github.repository }}
+      EVENT_SHA: ${{ github.sha }}
+    steps:
+      - name: Verify approved archive and atomically import 22 PNG files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, io, json, os, struct, urllib.parse, urllib.request, zipfile
+          repo = os.environ['REPOSITORY']
+          branch = 'gpt/hero-art-integration'
+          assert repo == 'yutsai862162-png/ai-game-playground', 'Unexpected repository'
+          assert os.environ['GITHUB_REF'] == 'refs/heads/' + branch, 'Unexpected branch'
+          api_root = 'https://api.github.com/repos/' + repo
+          def api(path, data=None, method=None):
+              headers = {'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'approved-hero-asset-import'}
+              payload = None if data is None else json.dumps(data).encode()
+              if payload is not None: headers['Content-Type'] = 'application/json'
+              req = urllib.request.Request(api_root + path, data=payload, headers=headers, method=method or ('GET' if data is None else 'POST'))
+              with urllib.request.urlopen(req, timeout=60) as response:
+                  return json.load(response)
+          def text_file(path, ref):
+              result = api('/contents/' + path + '?ref=' + urllib.parse.quote(ref, safe=''))
+              return base64.b64decode(result['content'])
+          head = api('/git/ref/heads/' + branch)['object']['sha']
+          assert head == os.environ['EVENT_SHA'], 'Branch moved; refusing to overwrite newer work'
+          request = json.loads(text_file('_incoming/hero-import.json', head))
+          manifest = json.loads(text_file('game/assets/bro/manifest.json', head))
+          source = request['url']
+          parsed = urllib.parse.urlparse(source)
+          assert parsed.scheme == 'https' and parsed.hostname and not parsed.username, 'HTTPS archive URL required'
+          assert request['sha256'] == manifest['archive_sha256'], 'Unexpected archive identity'
+          with urllib.request.urlopen(urllib.request.Request(source, headers={'User-Agent':'approved-hero-asset-import'}), timeout=90) as response:
+              raw = response.read(4 * 1024 * 1024 + 1)
+          assert len(raw) <= 4 * 1024 * 1024, 'Archive too large'
+          assert hashlib.sha256(raw).hexdigest() == manifest['archive_sha256'], 'Archive checksum mismatch'
+          expected = manifest['files']
+          assert len(expected) == 22, 'Expected exactly 22 approved assets'
+          files = {}
+          with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+              assert len(archive.infolist()) == 22, 'Unexpected archive entries'
+              for entry in archive.infolist():
+                  name = entry.filename
+                  assert name in expected and '/' not in name and '\\' not in name and name not in files, 'Unexpected or duplicate asset path'
+                  assert entry.file_size < 1024 * 1024, 'Oversized PNG'
+                  content = archive.read(entry)
+                  assert hashlib.sha256(content).hexdigest() == expected[name], 'PNG checksum mismatch: ' + name
+                  assert content[:8] == b'\x89PNG\r\n\x1a\n' and content[12:16] == b'IHDR', 'Invalid PNG: ' + name
+                  size = struct.unpack('>II', content[16:24])
+                  is_walk = any(name.startswith('bro_' + d + '_') for d in ('down','up','left','right'))
+                  assert size == ((96,160) if is_walk else (512,512)), 'Unexpected PNG dimensions: ' + name
+                  assert content[25] == 6, 'Expected RGBA PNG: ' + name
+                  files[name] = content
+          assert set(files) == set(expected), 'Missing approved PNGs'
+          parent = api('/git/commits/' + head)
+          entries = []
+          for name in sorted(files):
+              blob = api('/git/blobs', {'content':base64.b64encode(files[name]).decode(), 'encoding':'base64'})
+              entries.append({'path':'game/assets/bro/' + name, 'mode':'100644', 'type':'blob', 'sha':blob['sha']})
+              print('Verified and stored:', name)
+          entries.append({'path':'_incoming/hero-import.json', 'mode':'100644', 'type':'blob', 'sha':None})
+          tree = api('/git/trees', {'base_tree':parent['tree']['sha'], 'tree':entries})
+          commit = api('/git/commits', {'message':'Import 22 approved hero PNG assets with verified original bytes', 'tree':tree['sha'], 'parents':[head]})
+          assert api('/git/ref/heads/' + branch)['object']['sha'] == head, 'Branch changed during upload; assets not applied'
+          api('/git/refs/heads/' + branch, {'sha':commit['sha'], 'force':False}, 'PATCH')
+          print('Imported all 22 approved PNGs; main was not changed. Commit:', commit['sha'])
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('Imported **22/22 approved PNGs**, each with original-byte SHA-256 verification.\n\nOnly `gpt/hero-art-integration` was updated. No merge or main deployment was performed.\n')
+          PY
