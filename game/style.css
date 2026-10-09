@@ -10,8 +10,8 @@
   --sr: env(safe-area-inset-right, 0px);
   --st: env(safe-area-inset-top, 0px);
   --sb: env(safe-area-inset-bottom, 0px);
-  --pad: clamp(118px, 36vh, 168px);
-  --abtn: clamp(70px, 23vh, 100px);
+  --pad: clamp(128px, 40vh, 178px);
+  --abtn: clamp(78px, 26vh, 108px);
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body {
@@ -67,34 +67,45 @@ h1 { font-size: clamp(30px, 11vh, 60px); line-height: 1.15; margin: 10px 0 6px; 
 .obj-label { display: inline-block; background: var(--accent); color: var(--accent-ink); font-weight: 800; border-radius: 6px; padding: 0 6px; margin-right: 6px; }
 .hud-btns { display: flex; gap: 6px; pointer-events: auto; }
 .hud-btns button {
-  background: rgba(20,26,32,.82); border: 2px solid #56656f; border-radius: 12px; min-width: 44px; min-height: 44px;
+  background: rgba(20,26,32,.82); border: 2px solid #56656f; border-radius: 12px; min-width: 48px; min-height: 48px;
   padding: 2px 8px; font-size: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1;
 }
 .hud-btns button span { font-size: 10px; opacity: .85; }
 
 #controls { position: absolute; inset: 0; pointer-events: none; }
+/* 方向鍵：外層是加大的感應區，內層 .dpad-vis 是看得到的按鍵 */
 #dpad {
-  position: absolute; left: calc(14px + var(--sl)); bottom: calc(12px + var(--sb)); width: var(--pad); height: var(--pad);
-  pointer-events: auto; touch-action: none; border-radius: 50%; background: rgba(255,255,255,.08);
+  position: absolute; left: calc(var(--sl) - var(--pad) * 0.12); bottom: calc(var(--sb) - var(--pad) * 0.14);
+  width: calc(var(--pad) * 1.5); height: calc(var(--pad) * 1.5);
+  pointer-events: auto; touch-action: none; display: flex; align-items: center; justify-content: center;
+}
+#dpad .dpad-vis {
+  position: relative; width: var(--pad); height: var(--pad); border-radius: 50%;
+  background: rgba(255,255,255,.08); pointer-events: none;
 }
 #dpad .arm {
   position: absolute; width: 36%; height: 36%; display: flex; align-items: center; justify-content: center;
   background: rgba(20,26,32,.75); border: 2px solid rgba(255,255,255,.35); color: rgba(255,255,255,.85);
-  font-size: clamp(14px, 4vh, 20px); border-radius: 10px; pointer-events: none;
+  font-size: clamp(14px, 4vh, 20px); border-radius: 10px; pointer-events: none; transition: background .06s, transform .06s;
 }
 #dpad .up { left: 32%; top: 0; } #dpad .down { left: 32%; bottom: 0; }
 #dpad .left { left: 0; top: 32%; } #dpad .right { right: 0; top: 32%; }
-#dpad .hub { position: absolute; left: 36%; top: 36%; width: 28%; height: 28%; border-radius: 50%; background: rgba(20,26,32,.55); }
-#dpad .arm.on { background: var(--accent); color: var(--accent-ink); border-color: #fff; }
+#dpad .arm.on { background: var(--accent); color: var(--accent-ink); border-color: #fff; transform: scale(1.08); }
+#dpad .knob {
+  position: absolute; left: 36%; top: 36%; width: 28%; height: 28%; border-radius: 50%;
+  background: rgba(255,255,255,.28); border: 2px solid rgba(255,255,255,.5); pointer-events: none;
+}
+#dpad.active .knob { background: rgba(255,204,129,.85); }
 #btnA {
   position: absolute; right: calc(20px + var(--sr)); bottom: calc(22px + var(--sb)); width: var(--abtn); height: var(--abtn);
   border-radius: 50%; border: 3px solid rgba(255,255,255,.5); background: rgba(255,143,163,.55); pointer-events: auto;
   display: flex; flex-direction: column; align-items: center; justify-content: center; touch-action: none; padding: 0;
 }
+#btnA::before { content: ''; position: absolute; inset: -22px; border-radius: 50%; } /* 加大點擊範圍 */
+#btnA.pressed { transform: scale(.92); filter: brightness(1.15); }
 #btnA b { font-size: clamp(22px, 7vh, 32px); line-height: 1; }
 #btnA span { font-size: clamp(10px, 3vh, 13px); font-weight: 700; }
 #btnA.ready { background: var(--pink); border-color: #fff; animation: pulse 1s infinite; }
-#btnA:active { transform: scale(.94); }
 @keyframes pulse { 50% { box-shadow: 0 0 0 8px rgba(255,143,163,.25); } }
 
 /* ---------- 超市 ---------- */

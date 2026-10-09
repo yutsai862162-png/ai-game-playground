@@ -7,7 +7,8 @@
 const SAVE_KEY = 'otakuHero.ch1.save';
 const PREF_KEY = 'otakuHero.prefs';
 const SAVE_VERSION = 1;
-const MOVE_TIME = 0.17; // 走一格的秒數
+const MOVE_TIME = 0.15;  // 走一格的秒數
+const TURN_DELAY = 0.07; // 輕點方向鍵少於這個秒數＝只轉身不移動
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const OPPOSITE = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
@@ -91,6 +92,8 @@ const G = {
   shakeT: 0,
   ctx: null, cw: 0, ch: 0, dpr: 1, scale: 1,
   warnedSave: false,
+  camX: 0, camY: 0,
+  path: [], pathTarget: null, marker: null,
 };
 window.__game = G; // 方便除錯與自動化測試
 
@@ -126,7 +129,8 @@ function walkable(x, y) { return '.,_'.includes(tileAt(x, y)) && !npcAt(x, y); }
 function setupWorld() {
   const st = G.state;
   if (!walkable(st.x, st.y)) { st.x = Story.start.x; st.y = Story.start.y; }
-  G.player = { x: st.x, y: st.y, dir: st.dir || 'down', moving: false, prog: 0, sx: st.x, sy: st.y, tx: st.x, ty: st.y, t: 0 };
+  G.player = { x: st.x, y: st.y, dir: st.dir || 'down', moving: false, prog: 0, sx: st.x, sy: st.y, tx: st.x, ty: st.y, walkT: 0 };
+  G.path = []; G.pathTarget = null; G.marker = null;
   G.npcs = Story.npcs.map((n) => Object.assign({}, n, { baseDir: n.dir, t: Math.random() * 10 }));
   G.emotes = [];
 }
@@ -143,9 +147,20 @@ const KEYMAP = {
   KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right',
 };
 const Input = {
-  keys: [], pad: null,
-  dir() { return this.pad || this.keys[this.keys.length - 1] || null; },
-  reset() { this.keys = []; this.pad = null; highlightPad(null); },
+  keys: [], pad: null, since: 0, last: null,
+  dir() {
+    const d = this.pad || this.keys[this.keys.length - 1] || null;
+    if (d !== this.last) { // 記錄方向開始按下的時間，以及當時面向哪裡
+      this.last = d; this.since = G.time;
+      this.startDir = G.player ? G.player.dir : null;
+    }
+    return d;
+  },
+  reset() {
+    this.keys = []; this.pad = null; this.last = null;
+    highlightPad(null);
+    G.path = []; G.pathTarget = null;
+  },
 };
 
 function highlightPad(dir) {
@@ -153,28 +168,75 @@ function highlightPad(dir) {
 }
 
 function setupInput() {
-  const dpad = $('#dpad');
+  const dpad = $('#dpad'), vis = dpad.querySelector('.dpad-vis'), knob = dpad.querySelector('.knob');
   let padId = null;
   const update = (e) => {
-    const r = dpad.getBoundingClientRect();
-    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const r = vis.getBoundingClientRect();
+    const R = r.width / 2;
+    const dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+    const dist = Math.hypot(dx, dy);
+    // 搖桿頭跟著手指走，看得出目前方向
+    const k = dist ? (Math.min(dist, R) * 0.42) / dist : 0;
+    knob.style.transform = 'translate(' + (dx * k).toFixed(1) + 'px,' + (dy * k).toFixed(1) + 'px)';
     let d = null;
-    if (Math.hypot(dx, dy) > r.width * 0.1) d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-    if (d !== Input.pad) { Input.pad = d; highlightPad(d); }
+    if (dist > Math.max(8, R * 0.16)) {
+      // 遲滯：已經在走橫向時，要明顯往上/下才換方向，避免斜角抖動
+      const ax = Math.abs(dx), ay = Math.abs(dy), cur = Input.pad, H = 1.35;
+      let horiz;
+      if (cur === 'left' || cur === 'right') horiz = !(ay > ax * H);
+      else if (cur === 'up' || cur === 'down') horiz = ax > ay * H;
+      else horiz = ax >= ay;
+      d = horiz ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+    }
+    if (d !== Input.pad) {
+      Input.pad = d; highlightPad(d);
+      if (d) { G.path = []; G.pathTarget = null; }
+    }
   };
   dpad.addEventListener('pointerdown', (e) => {
     e.preventDefault(); Sfx.init();
     padId = e.pointerId;
+    dpad.classList.add('active');
     try { dpad.setPointerCapture(e.pointerId); } catch (err) { /* 舊版瀏覽器 */ }
     update(e);
   });
-  dpad.addEventListener('pointermove', (e) => { if (e.pointerId === padId) update(e); });
-  const end = (e) => { if (e.pointerId === padId) { padId = null; Input.pad = null; highlightPad(null); } };
+  dpad.addEventListener('pointermove', (e) => { if (e.pointerId === padId) { e.preventDefault(); update(e); } });
+  const end = (e) => {
+    if (e.pointerId !== padId) return;
+    padId = null; Input.pad = null; highlightPad(null);
+    dpad.classList.remove('active'); knob.style.transform = '';
+  };
   dpad.addEventListener('pointerup', end);
   dpad.addEventListener('pointercancel', end);
   dpad.addEventListener('lostpointercapture', end);
 
-  $('#btnA').addEventListener('pointerdown', (e) => { e.preventDefault(); Sfx.init(); interact(); });
+  const btnA = $('#btnA');
+  btnA.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); Sfx.init();
+    btnA.classList.add('pressed');
+    interact();
+  });
+  const unpress = () => btnA.classList.remove('pressed');
+  btnA.addEventListener('pointerup', unpress);
+  btnA.addEventListener('pointercancel', unpress);
+  btnA.addEventListener('pointerleave', unpress);
+  btnA.addEventListener('contextmenu', (e) => e.preventDefault());
+  dpad.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // 點地圖：走過去；點人物或物件：走到旁邊並自動互動
+  const view = $('#view');
+  view.addEventListener('pointerdown', (e) => {
+    if (G.screen !== 'game' || G.locked || !overlaysClosed() || !G.player) return;
+    e.preventDefault(); Sfx.init();
+    const r = view.getBoundingClientRect();
+    const wx = (e.clientX - r.left) / G.scale + G.camX, wy = (e.clientY - r.top) / G.scale + G.camY;
+    const tx = Math.floor(wx / TILE), ty = Math.floor(wy / TILE);
+    let target = targetAt(tx, ty);
+    // 角色的頭會畫在上一格，點到頭也算點到人
+    if (!target && wy - ty * TILE > TILE * 0.35 && npcAt(tx, ty + 1)) target = targetAt(tx, ty + 1);
+    walkTo(tx, ty, target);
+  });
+  view.addEventListener('contextmenu', (e) => e.preventDefault());
 
   window.addEventListener('keydown', (e) => {
     if (e.repeat && !KEYMAP[e.code]) return;
@@ -182,6 +244,7 @@ function setupInput() {
       e.preventDefault();
       const d = KEYMAP[e.code];
       if (!Input.keys.includes(d)) Input.keys.push(d);
+      G.path = []; G.pathTarget = null;
       return;
     }
     if (['Space', 'Enter', 'KeyZ', 'KeyJ'].includes(e.code)) {
@@ -232,6 +295,55 @@ function findTarget() {
     if (t) return Object.assign(t, { dir: d });
   }
   return null;
+}
+
+/** 從玩家位置找路（BFS），goal(x, y) 為真即抵達；回傳方向陣列，找不到回傳 null */
+function findPath(goal) {
+  const p = G.player;
+  const sx = p.moving ? p.tx : p.x, sy = p.moving ? p.ty : p.y;
+  const key = (x, y) => x + ',' + y;
+  const prev = new Map([[key(sx, sy), null]]);
+  const q = [[sx, sy]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    if (goal(x, y)) {
+      const out = [];
+      let k = key(x, y);
+      while (prev.get(k)) { const [px, py, d] = prev.get(k); out.unshift(d); k = key(px, py); }
+      return out;
+    }
+    for (const d of ['up', 'down', 'left', 'right']) {
+      const nx = x + DIRS[d][0], ny = y + DIRS[d][1], k = key(nx, ny);
+      if (prev.has(k) || !walkable(nx, ny)) continue;
+      prev.set(k, [x, y, d]);
+      q.push([nx, ny]);
+    }
+  }
+  return null;
+}
+
+function walkTo(tx, ty, target) {
+  let path;
+  if (target) {
+    path = findPath((x, y) => Math.abs(x - target.x) + Math.abs(y - target.y) === 1);
+  } else if (walkable(tx, ty)) {
+    path = findPath((x, y) => x === tx && y === ty);
+  }
+  if (!path) { emote('player', '❔', 600); return; }
+  G.path = path;
+  G.pathTarget = target || null;
+  G.marker = { x: target ? target.x : tx, y: target ? target.y : ty, born: G.time };
+  if (!path.length && target && !G.player.moving) arrive();
+}
+
+/** 自動走到目的地：面向目標並互動 */
+function arrive() {
+  const t = G.pathTarget, p = G.player;
+  G.pathTarget = null; G.marker = null;
+  if (!t) return;
+  const dx = t.x - p.x, dy = t.y - p.y;
+  p.dir = dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up';
+  interact();
 }
 
 function interact() {
@@ -344,6 +456,7 @@ function choose(who, text, options, face) {
     box.innerHTML = '';
     Dialog.open(who, face);
     Dialog.onTyped = () => {
+      const shownAt = performance.now();
       options.forEach((opt, i) => {
         const b = document.createElement('button');
         b.type = 'button';
@@ -351,6 +464,7 @@ function choose(who, text, options, face) {
         b.style.animationDelay = i * 0.06 + 's';
         b.addEventListener('click', (e) => {
           e.stopPropagation();
+          if (performance.now() - shownAt < 280) return; // 防止「跳過打字」的同一下誤選到選項
           Sfx.blip();
           Dialog.choosing = false;
           box.innerHTML = '';
@@ -601,6 +715,7 @@ function render() {
   const [fx, fy] = playerPos();
   const camX = camAxis((fx + 0.5) * TILE, G.cw / s, W * TILE);
   const camY = camAxis((fy + 0.5) * TILE, G.ch / s, H * TILE);
+  G.camX = camX; G.camY = camY;
   let ox = 0, oy = 0;
   if (G.shakeT > 0) { ox = (Math.random() - 0.5) * 6; oy = (Math.random() - 0.5) * 6; }
   ctx.setTransform(G.dpr * s, 0, 0, G.dpr * s, (-camX * s + ox) * G.dpr, (-camY * s + oy) * G.dpr);
@@ -609,6 +724,13 @@ function render() {
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) Art.tile(ctx, map, x, y, G.time);
   const rg = Story.rug; Art.rug(ctx, rg.x, rg.y, rg.w, rg.h);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (map[y][x] === 'S') Art.tile(ctx, map, x, y, G.time);
+  // 點地圖的目的地標記
+  if (G.marker) {
+    const a = (G.time - G.marker.born) * 4;
+    ctx.strokeStyle = 'rgba(255,204,129,' + (0.9 - (a % 1) * 0.6).toFixed(2) + ')';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(G.marker.x * TILE + 16, G.marker.y * TILE + 26, 7 + (a % 1) * 5, 3 + (a % 1) * 2, 0, 0, Math.PI * 2); ctx.stroke();
+  }
 
   // 角色與會遮擋的物件，依 y 排序
   const list = [];
@@ -617,7 +739,7 @@ function render() {
   } }));
   const p = G.player;
   list.push({ y: fy + 0.5, draw: () => {
-    Art.chibi(ctx, fx * TILE + 16, fy * TILE + 29, LOOKS.bro, { dir: p.dir, t: G.time, moving: p.moving });
+    Art.chibi(ctx, fx * TILE + 16, fy * TILE + 29, LOOKS.bro, { dir: p.dir, t: p.moving ? p.walkT : G.time, moving: p.moving });
   } });
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     if (map[y][x] === 'S') list.push({ y: y + 0.8, draw: () => Art.sofaBack(ctx, map, x, y) });
@@ -629,17 +751,24 @@ function render() {
   if (t && !G.locked) {
     const bob = Math.sin(G.time * 6) * 2;
     const isNpc = t.kind === 'npc';
-    bubble(ctx, t.x * TILE + 16, t.y * TILE + (isNpc ? -18 : -2) + bob, isNpc ? '💬' : '🔍', 0.85);
+    bubble(ctx, t.x * TILE + 16, (isNpc ? headTop(G.npcs.find((n) => n.id === t.id)) : t.y * TILE - 2) + bob, isNpc ? '💬' : '🔍', 0.85);
   }
   // 表情符號
   G.emotes = G.emotes.filter((e) => e.until > G.time);
   G.emotes.forEach((e) => {
     let x, y;
-    if (e.id === 'player') { x = fx * TILE + 16; y = fy * TILE - 18; }
-    else { const n = G.npcs.find((m) => m.id === e.id); if (!n) return; x = n.x * TILE + 16; y = n.y * TILE - (n.sitting ? 12 : 18); }
+    if (e.id === 'player') { x = fx * TILE + 16; y = fy * TILE + 29 + Art.metrics(LOOKS.bro).top - 6; }
+    else { const n = G.npcs.find((m) => m.id === e.id); if (!n) return; x = n.x * TILE + 16; y = headTop(n); }
     const age = G.time - e.born;
     bubble(ctx, x, y - Math.min(1, age * 6) * 4, e.icon, Math.min(1, 0.4 + age * 5));
   });
+}
+
+/** NPC 頭頂上方的位置（放對話泡泡、表情） */
+function headTop(n) {
+  if (!n) return 0;
+  const L = LOOKS[n.look], M = Art.metrics(L);
+  return n.y * TILE + (n.sitting ? 24 + L.leg * 0.6 : 29) + M.top - 6;
 }
 
 function bubble(ctx, x, y, icon, k) {
@@ -687,17 +816,19 @@ function update(dt) {
   if (G.shakeT > 0) G.shakeT -= dt;
   const p = G.player;
   if (!p || G.screen !== 'game') return;
+  const free = !G.locked && overlaysClosed();
   if (p.moving) {
     p.prog += dt / MOVE_TIME;
-    if (p.prog >= 1) { p.moving = false; p.x = p.tx; p.y = p.ty; p.prog = 0; }
-  }
-  if (!p.moving && !G.locked && overlaysClosed()) {
-    const d = Input.dir();
-    if (d) {
-      p.dir = d;
-      const nx = p.x + DIRS[d][0], ny = p.y + DIRS[d][1];
-      if (walkable(nx, ny)) Object.assign(p, { sx: p.x, sy: p.y, tx: nx, ty: ny, prog: 0, moving: true });
+    p.walkT += dt;
+    if (p.prog >= 1) {
+      // 抵達這一格；若方向鍵還按著就無縫接著走下一格，不停頓
+      const over = p.prog - 1;
+      p.x = p.tx; p.y = p.ty; p.moving = false; p.prog = 0;
+      if (free && stepFrom(true)) p.prog = Math.min(over, 0.9);
+      else if (!G.path.length && G.pathTarget && free) arrive();
     }
+  } else if (free) {
+    stepFrom(false);
   }
   G.target = G.locked ? null : findTarget();
   const btn = $('#btnA');
@@ -706,6 +837,25 @@ function update(dt) {
   const label = G.target ? G.target.label : '互動';
   if ($('#aLabel').textContent !== label) $('#aLabel').textContent = label;
   ambient(dt);
+}
+
+/** 依照方向鍵或自動路徑走一步；chaining = 剛走完一格接著走 */
+function stepFrom(chaining) {
+  const p = G.player;
+  let d = Input.dir();
+  const manual = !!d;
+  if (!d && G.path.length) d = G.path.shift();
+  if (!d) { if (G.marker && !G.pathTarget && !G.path.length) G.marker = null; return false; }
+  // 輕點新方向：先轉身，按住超過一下下才開始走
+  if (manual && !chaining && d !== Input.startDir && G.time - Input.since < TURN_DELAY) { p.dir = d; return false; }
+  p.dir = d;
+  const nx = p.x + DIRS[d][0], ny = p.y + DIRS[d][1];
+  if (!walkable(nx, ny)) {
+    if (!manual) { G.path = []; G.pathTarget = null; G.marker = null; } // 路被擋住就放棄
+    return false;
+  }
+  Object.assign(p, { sx: p.x, sy: p.y, tx: nx, ty: ny, prog: 0, moving: true });
+  return true;
 }
 
 let ambientT = 4;
@@ -775,7 +925,12 @@ function boot() {
     if (!G.player) setupWorld();
     showScreen('game'); refreshHUD();
   });
-  $('#dialogLayer').addEventListener('click', () => Dialog.advance());
+  // 對話：手指一碰就前進（比 click 更即時）；點在選項上則交給選項按鈕
+  $('#dialogLayer').addEventListener('pointerdown', (e) => {
+    if (e.target.closest('#choices')) return;
+    e.preventDefault();
+    Dialog.advance();
+  });
   $('#btnRotateOk').addEventListener('click', () => { $('#rotate').classList.add('dismissed'); });
   $('#btnErrClose').addEventListener('click', () => { $('#errorBar').hidden = true; });
   $('#btnErrTitle').addEventListener('click', () => { $('#errorBar').hidden = true; goTitle(false); startLoop(); });
