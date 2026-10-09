@@ -10,22 +10,23 @@ const TILE = 32;
  * 每個角色有自己的體型（頭圍、身寬、腿長），剪影一眼就能分辨。
  * head: [橫半徑, 縱半徑]  body: [寬, 高]  leg: 腿長 */
 const LOOKS = {
-  // 哥哥：全家最圓。超大圓臉＋雙下巴、圓框厚眼鏡、豆豆眼、睡亂的頭髮＋呆毛、
-  //       印著「宅」字的緊繃 T 恤、大肚子、短腿、灰色運動褲、白襪（鞋子被刪了）
+  // 哥哥：全家最圓、最親切。超大圓臉＋雙下巴、圓框厚眼鏡、豆豆眼、ω 嘴、
+  //       短黑髮＋呆毛、印著「宅」字的緊繃 T 恤（沾了點零食屑）、大肚子、短腿、
+  //       灰色運動長褲、白襪（鞋子被刪了）
   bro: { kind: 'bro', skin: '#ffd7b0', hair: '#2a2422', shirt: '#4a78d0', pants: '#868e99', shoe: '#f4f4f4',
     head: [15.5, 13.2], body: [32, 17], leg: 4 },
-  // 爸爸：瘦高、長臉方下巴、深色短髮旁分＋兩鬢灰白、粗眉、小鬍子、不戴眼鏡、
-  //       白色汗衫＋卡其短褲＋藍白拖，手上永遠拿著遙控器
+  // 爸爸：安靜低調的中年爸爸。瘦高、長臉方下巴、髮線後退的灰黑短髮＋兩鬢灰白、
+  //       抬頭紋、粗眉、小鬍子、不戴眼鏡、白色汗衫＋卡其短褲＋藍白拖、拿遙控器
   dad: { kind: 'dad', skin: '#e8b98f', hair: '#3a3634', gray: '#a8a39c', shirt: '#f7f5ef', pants: '#b9a27a', shoe: '#3d6fd1',
     head: [9.4, 11.6], body: [16, 19], leg: 11 },
-  // 媽媽：氣勢很足但不是反派。蓬鬆大捲髮、挺直的眉毛、珊瑚色唇、珍珠耳環、
-  //       圍裙，一手叉腰一手拿鍋鏟
-  mom: { kind: 'mom', skin: '#ffd3b0', hair: '#5e2a20', shirt: '#c9416a', apron: '#fff1c7', pants: '#5b4a7a', shoe: '#7a2a3a',
-    head: [11, 10.6], body: [19, 15], leg: 7 },
-  // 妹妹：清醒、獨立、吐槽役。中分黑長直髮、半睜的「看透一切」眼神、壞笑、
-  //       脖子掛耳罩式耳機、寬鬆灰紫帽T、手機不離手
-  sis: { kind: 'sis', skin: '#ffe2c8', hair: '#1f1a22', shirt: '#7d7fa3', pants: '#2f3c5c', shoe: '#f4f4f4',
-    head: [10.4, 10], body: [15, 14], leg: 9 },
+  // 媽媽：高壓、強勢、很會管事，但不是反派。俐落的短鮑伯頭、平直嚴格的眉毛、
+  //       抿成一直線的嘴、珍珠耳環、有領子的襯衫外套，雙手抱胸「我說了算」
+  mom: { kind: 'mom', skin: '#ffd3b0', hair: '#2e2220', shirt: '#a8324f', collar: '#fff4e4', pants: '#3f3550', shoe: '#2a2228',
+    head: [11, 10.6], body: [19, 15], leg: 7.5 },
+  // 妹妹：已經搬出去住、清醒獨立的吐槽役。及肩直髮一邊塞耳後、半睜的「看透一切」
+  //       眼神、壞笑、白T＋橄欖綠外套、斜背小包、脖子掛耳機、手機不離手
+  sis: { kind: 'sis', skin: '#ffe2c8', hair: '#1f1a22', shirt: '#6f7d4f', tee: '#f6f4ee', pants: '#2f3c5c', shoe: '#f4f4f4',
+    head: [10.4, 10], body: [15, 14], leg: 9.5 },
 };
 
 const Art = (() => {
@@ -52,7 +53,7 @@ const Art = (() => {
     const legTop = -L.leg;
     const bodyTop = legTop - bh + 3;
     const headCY = bodyTop - hy + 4;
-    const extra = L.kind === 'mom' ? 6 : L.kind === 'bro' ? 5 : 2;
+    const extra = L.kind === 'bro' ? 5 : 2;
     return { hx, hy, bw, bh, legTop, bodyTop, headCY, top: headCY - hy - extra };
   }
 
@@ -95,16 +96,22 @@ const Art = (() => {
     // 手臂
     const ax = M.bw / 2 + 1, ay = M.bodyTop + M.bh * 0.45;
     const armL = L.kind === 'dad' ? L.skin : L.kind === 'bro' ? L.skin : L.shirt;
-    if (L.kind === 'mom' && dir !== 'up') {
-      // 叉腰
-      ell(ctx, -ax + 0.5, ay + 1, 3.4, 3, L.shirt); ell(ctx, -ax + 2.5, ay + 3, 2.6, 2.4, L.skin);
+    const crossed = L.kind === 'mom' && dir !== 'up';
+    if (crossed) {
+      // 雙手抱胸（畫在身體之後）
     } else {
       ell(ctx, -ax, ay - step * 1.2, 3.2, 3.4, armL); ell(ctx, -ax, ay + 2 - step * 1.2, 2.6, 2.4, L.skin);
     }
-    const holding = (L.kind === 'sis' || L.kind === 'mom' || L.kind === 'dad') && dir === 'down';
-    if (!holding) { ell(ctx, ax, ay + step * 1.2, 3.2, 3.4, armL); ell(ctx, ax, ay + 2 + step * 1.2, 2.6, 2.4, L.skin); }
+    const holding = (L.kind === 'sis' || L.kind === 'dad') && dir === 'down';
+    if (!holding && !crossed) { ell(ctx, ax, ay + step * 1.2, 3.2, 3.4, armL); ell(ctx, ax, ay + 2 + step * 1.2, 2.6, 2.4, L.skin); }
 
     body(ctx, L, M, dir);
+    if (crossed) {
+      fillRR(ctx, -M.bw / 2 - 1.5, ay - 1.5, M.bw + 3, 6, 3, L.shirt);
+      ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(-M.bw / 2 + 2, ay + 3.5); ctx.lineTo(M.bw / 2 - 2, ay - 0.5); ctx.stroke();
+      ell(ctx, -M.bw / 2 + 1, ay + 0.5, 2.2, 2, L.skin); ell(ctx, M.bw / 2 - 1, ay + 2.5, 2.2, 2, L.skin);
+    }
 
     // 頭
     if (L.kind === 'dad') { ell(ctx, -M.hx, M.headCY + 1, 2, 3, L.skin); ell(ctx, M.hx, M.headCY + 1, 2, 3, L.skin); }
@@ -135,6 +142,7 @@ const Art = (() => {
         ctx.fillStyle = '#fff'; ctx.font = 'bold 8px "PingFang TC","Noto Sans TC",sans-serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('宅', 0, top + bh / 2);
+        for (const [dx, dy] of [[-7, 3], [-5, 4.5], [6, 2.5]]) ell(ctx, dx, top + dy, 0.8, 0.6, '#d9a25a'); // 零食屑
       }
       return;
     }
@@ -151,26 +159,29 @@ const Art = (() => {
       return;
     }
     if (L.kind === 'mom') {
-      fillRR(ctx, -bw / 2, top, bw, bh, 6, L.shirt);
+      // 有領子的襯衫外套，俐落
+      fillRR(ctx, -bw / 2, top, bw, bh, 5, L.shirt);
       if (dir !== 'up') {
-        fillRR(ctx, -bw / 2 + 3, top + 3, bw - 6, bh - 2, 3, L.apron);
-        fillRR(ctx, -3, top + bh - 7, 6, 4, 1.5, '#f6d58e');
-        for (let i = -2; i <= 2; i++) ell(ctx, i * 2.6, top + 3, 1.3, 1, '#f3a7b3');
+        ctx.fillStyle = L.collar;
+        ctx.beginPath(); ctx.moveTo(-5, top); ctx.lineTo(0, top + 5); ctx.lineTo(-1.5, top); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(5, top); ctx.lineTo(0, top + 5); ctx.lineTo(1.5, top); ctx.fill();
+        line(ctx, 0, top + 5, 0, top + bh - 1, 'rgba(0,0,0,.15)', 0.8);
       } else {
-        line(ctx, -3, top + 4, 3, top + 7, L.apron, 1.4); line(ctx, 3, top + 4, -3, top + 7, L.apron, 1.4);
+        fillRR(ctx, -5, top, 10, 2.5, 1, L.collar);
       }
       return;
     }
-    // 妹妹：寬鬆帽T＋脖子上的耳機
+    // 妹妹：白T＋敞開的外套＋斜背小包＋脖子上的耳機
     fillRR(ctx, -bw / 2, top, bw, bh, 5, L.shirt);
     if (dir !== 'up') {
-      line(ctx, -1.8, top + 2, -1.8, top + 6, '#e8e8f0', 0.9); line(ctx, 1.8, top + 2, 1.8, top + 6, '#e8e8f0', 0.9);
-      fillRR(ctx, -5, top + bh - 5.5, 10, 4, 2, 'rgba(0,0,0,.14)');
+      fillRR(ctx, -3.6, top + 1, 7.2, bh - 1, 1.5, L.tee);
+      line(ctx, -bw / 2 + 2, top + 1, bw / 2 - 3, top + bh - 2, '#3a2a22', 1.4); // 斜背帶
+      fillRR(ctx, bw / 2 - 6, top + bh - 5, 6, 4.5, 1.2, '#c8823a');
       ctx.strokeStyle = '#2a2a33'; ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.arc(0, top - 1, 6, Math.PI * 0.1, Math.PI * 0.9); ctx.stroke();
       ell(ctx, -6, top + 1, 2.3, 2.8, '#ff7aa2'); ell(ctx, 6, top + 1, 2.3, 2.8, '#ff7aa2');
     } else {
-      ell(ctx, 0, top + 2.5, 6, 3.8, '#6a6c8e'); // 帽子
+      line(ctx, -bw / 2 + 2, top + bh - 2, bw / 2 - 3, top + 1, '#3a2a22', 1.4);
     }
   }
 
@@ -181,12 +192,6 @@ const Art = (() => {
       fillRR(ctx, x - 1, y - 1, 6, 9, 1.5, '#1f1f28');
       ctx.fillStyle = `hsl(${(t * 30) % 360},70%,75%)`; ctx.fillRect(x, y, 4, 6.5);
       ell(ctx, x + 2.5, y + 8, 3, 3, L.skin);
-    } else if (L.kind === 'mom') {
-      line(ctx, x + 2, y + 8, x + 3.5, y - 3, '#6b4a35', 1.8);
-      ctx.fillStyle = '#c3cad0';
-      ctx.beginPath(); ctx.moveTo(x + 1.5, y - 3); ctx.lineTo(x + 6, y - 3); ctx.lineTo(x + 7.5, y - 10); ctx.lineTo(x + 0.5, y - 10); ctx.closePath(); ctx.fill();
-      line(ctx, x + 2.8, y - 8.5, x + 2.8, y - 4.5, '#8f989f', 0.8); line(ctx, x + 5, y - 8.5, x + 4.6, y - 4.5, '#8f989f', 0.8);
-      ell(ctx, x + 2, y + 8, 3, 3, L.skin);
     } else if (L.kind === 'dad') {
       fillRR(ctx, x - 1, y + 2, 3.5, 8, 1, '#2a2a2a');
       ell(ctx, x + 0.7, y + 3.5, 0.8, 0.8, '#ff5a5a');
@@ -228,53 +233,51 @@ const Art = (() => {
         ell(ctx, -hx + 0.5, cy + 2, 1.6, 3, L.gray); ell(ctx, hx - 0.5, cy + 2, 1.6, 3, L.gray);
         return;
       }
-      // 圓頂短髮＋旁分往一側梳的瀏海
-      ctx.beginPath(); ctx.ellipse(0, cy - hy * 0.3, hx + 0.6, hy * 0.78, 0, Math.PI, 0); ctx.fill();
+      // 髮線後退的圓頂短髮（額頭比較高）
+      ctx.beginPath(); ctx.ellipse(0, cy - hy * 0.42, hx + 0.6, hy * 0.66, 0, Math.PI, 0); ctx.fill();
+      line(ctx, -hx * 0.35, cy - hy * 0.3, hx * 0.35, cy - hy * 0.3, 'rgba(120,70,40,.28)', 0.7); // 抬頭紋
       ctx.beginPath();
-      ctx.moveTo(-hx - 0.5, cy - hy * 0.3);
-      ctx.quadraticCurveTo(-hx * 0.5 + side, cy - hy * 0.12, hx * 0.15 + side, cy - hy * 0.45);
-      ctx.quadraticCurveTo(hx * 0.6 + side, cy - hy * 0.6, hx + 0.6, cy - hy * 0.3);
-      ctx.lineTo(0, cy - hy * 0.5);
+      ctx.moveTo(-hx - 0.5, cy - hy * 0.38);
+      ctx.quadraticCurveTo(-hx * 0.6 + side, cy - hy * 0.42, -hx * 0.55 + side, cy - hy * 0.62);
+      ctx.lineTo(-hx * 0.2, cy - hy * 0.7);
       ctx.fill();
       line(ctx, -hx * 0.35 + side, cy - hy * 1.02, -hx * 0.42 + side, cy - hy * 0.6, 'rgba(255,255,255,.22)', 0.9); // 分線
       ell(ctx, -hx + 0.5, cy - 0.5, 1.7, 3.4, L.gray); ell(ctx, hx - 0.5, cy - 0.5, 1.7, 3.4, L.gray);
       return;
     }
     if (L.kind === 'mom') {
-      // 蓬鬆大捲髮
-      const n = 11;
-      for (let a = 0; a < n; a++) {
-        const ang = Math.PI * 0.92 + (a / (n - 1)) * Math.PI * 1.16;
-        ell(ctx, Math.cos(ang) * (hx + 2.5), cy - 1 + Math.sin(ang) * (hy + 1.5), 5, 5, c);
+      // 俐落短鮑伯頭：齊下巴、旁分、線條乾淨
+      if (dir === 'up') {
+        ell(ctx, 0, cy - 0.5, hx + 1.6, hy + 0.6, c);
+        fillRR(ctx, -hx - 1.6, cy - 1, 2 * hx + 3.2, hy * 0.85, 2, c);
+        return;
       }
-      ell(ctx, -hx - 2.5, cy + 4, 4.5, 4.5, c); ell(ctx, hx + 2.5, cy + 4, 4.5, 4.5, c);
-      if (dir === 'up') ell(ctx, 0, cy, hx + 2, hy + 1, c);
-      else {
-        ctx.beginPath(); ctx.ellipse(0, cy - 3, hx + 1, hy * 0.7, 0, Math.PI, 0); ctx.fill();
-        for (let i = -1; i <= 1; i++) ell(ctx, i * 5 + side * 2, cy - hy * 0.55, 3.6, 3, c);
-        ell(ctx, -hx - 0.5, cy + 4, 1.4, 1.4, '#fffaf0'); ell(ctx, hx + 0.5, cy + 4, 1.4, 1.4, '#fffaf0'); // 珍珠耳環
-      }
+      ctx.beginPath(); ctx.ellipse(0, cy - hy * 0.42, hx + 1.6, hy * 0.66 + 1, 0, Math.PI, 0); ctx.fill();
+      fillRR(ctx, -hx - 1.6, cy - hy * 0.45, 4.2, hy * 1.2, 1.5, c); // 齊下巴的兩側
+      fillRR(ctx, hx - 2.6, cy - hy * 0.45, 4.2, hy * 1.2, 1.5, c);
+      // 斜斜的旁分瀏海（圓弧，不擋眉毛）
+      ctx.beginPath(); ctx.ellipse(hx * 0.22 + side, cy - hy * 0.72, hx * 0.9, hy * 0.24, -0.18, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-hx * 0.66 + side, cy - hy * 0.5, hx * 0.36, hy * 0.3, 0.6, 0, Math.PI * 2); ctx.fill();
+      ell(ctx, -hx + 0.2, cy + 3.5, 1.3, 1.3, '#fffaf0'); ell(ctx, hx - 0.2, cy + 3.5, 1.3, 1.3, '#fffaf0'); // 珍珠耳環
       return;
     }
-    // 妹妹：中分黑長直髮，不綁、不裝可愛
+    // 妹妹：及肩直髮，右邊塞在耳後（露出小耳環）
     if (dir === 'up') {
       ell(ctx, 0, cy, hx + 1.2, hy + 0.6, c);
-      fillRR(ctx, -hx - 1.2, cy, 2 * hx + 2.4, hy + 9, 3, c);
+      fillRR(ctx, -hx - 1.2, cy, 2 * hx + 2.4, hy + 4, 3, c);
       return;
     }
     ctx.beginPath(); ctx.ellipse(0, cy - 1.5, hx + 1.2, hy * 0.98, 0, Math.PI, 0); ctx.fill();
-    // 中分瀏海往兩側
+    // 旁分瀏海往左撥
     ctx.beginPath();
-    ctx.moveTo(side * 1.5, cy - hy * 0.95);
-    ctx.quadraticCurveTo(-hx * 0.6 + side, cy - hy * 0.55, -hx - 0.5, cy + 1);
-    ctx.lineTo(-hx - 1.2, cy - 2); ctx.lineTo(-hx * 0.5, cy - hy); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(side * 1.5, cy - hy * 0.95);
-    ctx.quadraticCurveTo(hx * 0.6 + side, cy - hy * 0.55, hx + 0.5, cy + 1);
-    ctx.lineTo(hx + 1.2, cy - 2); ctx.lineTo(hx * 0.5, cy - hy); ctx.fill();
-    // 披到肩膀的長髮
-    fillRR(ctx, -hx - 1.8, cy - 3, 3.8, hy + 9, 1.8, c);
-    fillRR(ctx, hx - 2, cy - 3, 3.8, hy + 9, 1.8, c);
+    ctx.moveTo(hx * 0.3 + side, cy - hy * 0.98);
+    ctx.quadraticCurveTo(-hx * 0.4 + side, cy - hy * 0.6, -hx - 0.6, cy + 1);
+    ctx.lineTo(-hx - 1.2, cy - 2); ctx.lineTo(-hx * 0.4, cy - hy); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(hx * 0.2 + side, cy - hy * 0.72, hx * 0.75, 2.6, -0.15, 0, Math.PI * 2); ctx.fill();
+    fillRR(ctx, -hx - 1.8, cy - 3, 3.8, hy + 5, 1.8, c); // 左邊垂到肩
+    ell(ctx, hx - 0.2, cy + 0.5, 1.8, 2.6, L.skin); // 右耳（頭髮塞耳後）
+    ell(ctx, hx - 0.2, cy + 3.2, 0.8, 0.8, '#ffd34d');
+    fillRR(ctx, hx - 1.6, cy - hy * 0.55, 2.6, hy * 0.5, 1.2, c);
   }
 
   function faceParts(ctx, L, M, side, face) {
@@ -302,9 +305,8 @@ const Art = (() => {
       } else if (face === 'angry') {
         line(ctx, fx + s * (ex + 2.6), ey - 4.6, fx + s * (ex - 2.2), ey - 2.8, ink, 1.3);
       } else if (L.kind === 'mom') {
-        // 有精神的弧形眉：有氣勢但不兇
-        ctx.strokeStyle = ink; ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.arc(bx0, ey - 1.6, 3, Math.PI * 1.22, Math.PI * 1.78); ctx.stroke();
+        // 平直、內側略壓低的嚴格眉毛：有壓迫感但不兇惡
+        line(ctx, bx0 + 2.8 * s, ey - 4.6, bx0 - 2.4 * s, ey - 3.9, ink, 1.4);
       } else if (L.kind === 'sis') {
         line(ctx, bx0 - 2.4, ey - 4, bx0 + 2.4, ey - 4, ink, 1.1); // 平眉，冷靜
       }
@@ -343,8 +345,6 @@ const Art = (() => {
       line(ctx, fx - ex + 4.6, ey - 0.5, fx + ex - 4.6, ey - 0.5, '#141414', 1.4);
       ctx.globalAlpha = 0.6;
       for (const s of [-1, 1]) line(ctx, fx + s * ex - 2.6, ey - 1.6, fx + s * ex - 1, ey - 2.8, '#fff', 1);
-      ctx.globalAlpha = 0.35;
-      for (const [dx, dy] of [[-3, 3.2], [-1, 3.8], [1.2, 3.6], [3, 3]]) ell(ctx, fx + dx, my + dy, 0.45, 0.45, '#5a4a40');
       ctx.globalAlpha = 1;
       ell(ctx, fx, ey + 3.2, 1, 0.8, '#f0b48e'); // 小圓鼻
     }
@@ -372,7 +372,7 @@ const Art = (() => {
     } else if (L.kind === 'sis') {
       ctx.beginPath(); ctx.moveTo(fx - 2, my - 0.4); ctx.quadraticCurveTo(fx + 0.5, my + 0.6, fx + 2.4, my - 1.6); ctx.stroke(); // 壞笑
     } else if (L.kind === 'mom') {
-      ctx.beginPath(); ctx.moveTo(fx - 2.2, my - 0.4); ctx.quadraticCurveTo(fx, my + 0.8, fx + 2.2, my - 0.4); ctx.stroke(); // 自信的抿嘴笑
+      line(ctx, fx - 2.2, my - 0.2, fx + 2.2, my - 0.2, lip, 1.5); // 抿成一直線：「我說了算」
     } else {
       line(ctx, fx - 1.6, my - 0.6, fx + 1.6, my - 0.6, lip, 1.1);
     }

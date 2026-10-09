@@ -130,9 +130,9 @@ const Story = (() => {
     } else {
       emote('sis', '💢');
       await say('sis', '我聽到了喔。', 'angry');
-      await say('mom', '你妹在讀書。');
+      await say('mom', '你妹是回來吃飯的客人。');
       emote('sis', '📱');
-      await say('sis', '對，我在讀書。（滑手機）', 'deadpan');
+      await say('sis', '對，我是客人。客人不接任務。（滑手機）', 'deadpan');
     }
     await say('mom', '快去快回。十五分鐘。超過一分鐘，晚餐少一塊肉。', 'angry');
     await say('bro', '（三十幾歲了還在被晚餐威脅……但這招真的有效。）', 'deadpan');
@@ -222,8 +222,9 @@ const Story = (() => {
     if (st.shoe === 1) {
       await say('bro', '妳有看到我的鞋子嗎？昨天剛買的限定版！', 'shock');
       emote('sis', '📱');
-      await say('sis', '你又被系統管理員刪裝備了？', 'deadpan');
+      await say('sis', '哥，你又被系統管理員刪裝備了？', 'deadpan');
       await say('bro', '「又」？！', 'shock');
+      await say('bro', '（我花了兩個月存的錢……連新手村都還沒踏出去，裝備就先被回收了。）', 'deadpan');
       await say('sis', '上次是你的公仔，上上次是你的電競椅。\n這個家的系統管理員只有一位，而且不接受客訴。', 'deadpan');
       await say('sis', '你去問爸。他是這台伺服器運作最久的玩家，log 都在他腦子裡。', 'happy');
       st.shoe = 2;
@@ -232,6 +233,7 @@ const Story = (() => {
     }
     if (!st.met.sis) {
       await say('sis', '喔，哥你醒了。我還以為你今天要直接睡到第二章。', 'deadpan');
+      await say('sis', '我回來吃個飯而已，晚上就回我自己那邊了。順便看看你今天被唸幾次。', 'normal');
       const c = await choose('bro', '……', ['妳在幹嘛？', '我今天可是很忙的。']);
       if (c === 0) {
         await say('sis', '在看你上次被媽唸的影片。三萬次觀看。', 'happy');
@@ -288,7 +290,8 @@ const Story = (() => {
       await say('bro', '（媽媽說，再買一隻就要開始跟我收房租。）', 'deadpan');
     },
     async table() {
-      await narr('餐桌。上面放著妹妹的課本，看起來已經三天沒有翻開了。');
+      await narr('餐桌。上面放著妹妹的包包，鑰匙圈上掛著她自己租屋處的鑰匙。');
+      await say('bro', '（搬出去住的人，連鑰匙圈都散發著自由的光芒。）', 'deadpan');
     },
     async plant() {
       await narr('一盆塑膠盆栽。');
@@ -492,6 +495,8 @@ const Story = (() => {
       emote('sis', '📱');
       await say('sis', '申請要排隊喔。審核期三到五個工作天，通過率個位數。', 'deadpan');
       await say('bro', '（這個家的伺服器，今天也穩定運作中。）', 'deadpan');
+      await say('sis', '……不過那雙鞋還蠻好看的啦。下次藏好一點。', 'soft');
+      await say('bro', '（妹妹的好感度，偷偷 +1。）', 'happy');
     }
     if (st.flags.pudding) {
       await say('mom', '欸？這是什麼？', 'shock');
