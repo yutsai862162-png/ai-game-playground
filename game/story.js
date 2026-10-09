@@ -50,7 +50,7 @@ const Story = (() => {
 
   const ITEMS = {
     list: { icon: '📝', name: '媽媽的購物清單', desc: '・醬油：要上次那罐（綠色標籤）\n・蔥：要直的，不要有想法的\n・雞蛋：一盒，每一顆都要很有精神\n背面寫著：「十五分鐘內回來。」' },
-    shoebox: { icon: '📦', name: '神秘鞋盒', desc: '在沙發底下的「系統回收站」找到。\n盒子上貼著公告：「偵測到未經申請的新裝備，已自動隔離。」\n裡面是勇者昨天剛買的限定版球鞋，毫髮無傷。' },
+    shoebox: { icon: '📦', name: '神秘鞋盒', desc: '在沙發底下的「系統回收站」找到。\n盒子上貼著標籤：「玩家裝備已被未知管理員移除。」\n裡面是哥哥用自己的錢買的鞋，毫髮無傷。\n盒底有一行小字：「新地圖將開放個人背包管理權。」' },
     pudding: { icon: '🍮', name: '給媽媽的布丁', desc: '媽媽每次都說「不用買啦」，但每次都吃最快。' },
     bag: { icon: '🛍️', name: '戰利品購物袋', desc: '醬油、直的蔥、很有精神的雞蛋。\n勇者人生中第一次「全員到齊」的採買。' },
   };
@@ -174,10 +174,9 @@ const Story = (() => {
     if (st.stage === 2) {
       if (st.shoe >= 1 && st.shoe < 4) {
         await say('bro', '媽，妳有看到我昨天買的新鞋嗎？');
-        await say('mom', '鞋櫃裡不是還有一雙舊的？那雙還能穿啊。', 'normal');
-        await say('bro', '可是新的那雙——', 'shock');
-        await say('mom', '蔥要老了。', 'deadpan');
-        await say('bro', '（完美避開問題。不愧是這個家的系統管理員。）', 'deadpan');
+        await say('mom', '鞋子？我不知道啊。', 'normal');
+        await say('mom', '你自己的東西自己顧好。快去買東西，蔥要老了。', 'normal');
+        await say('bro', '（……好。線索：零。）', 'deadpan');
         return;
       }
       return say('mom', '還在這裡？蔥都要老了。', 'angry');
@@ -220,13 +219,11 @@ const Story = (() => {
   async function sis() {
     const st = S();
     if (st.shoe === 1) {
-      await say('bro', '妳有看到我的鞋子嗎？昨天剛買的限定版！', 'shock');
-      emote('sis', '📱');
-      await say('sis', '哥，你又被系統管理員刪裝備了？', 'deadpan');
-      await say('bro', '「又」？！', 'shock');
-      await say('bro', '（我花了兩個月存的錢……連新手村都還沒踏出去，裝備就先被回收了。）', 'deadpan');
-      await say('sis', '上次是你的公仔，上上次是你的電競椅。\n這個家的系統管理員只有一位，而且不接受客訴。', 'deadpan');
-      await say('sis', '你去問爸。他是這台伺服器運作最久的玩家，log 都在他腦子裡。', 'happy');
+      await say('bro', '妳有看到我的鞋子嗎？我昨天用自己的錢買的！', 'shock');
+      await say('sis', '哥，你是不是又被系統管理員刪裝備了？', 'deadpan');
+      await say('bro', '蛤？我只是買雙鞋欸！', 'shock');
+      await say('sis', '我知道。這種事件通常不會發更新公告。', 'deadpan');
+      await say('sis', '你去問爸吧。他在客廳待最久，什麼都看過。', 'happy');
       st.shoe = 2;
       saveGame(true);
       return;
@@ -277,6 +274,12 @@ const Story = (() => {
       st.flags.sawPudding = true;
     },
     async myroom() {
+      const sq = S().shoe;
+      if (sq >= 1 && sq < 4) {
+        await narr('勇者把房間又翻了一遍。');
+        await narr('找到：三個月前的發票、一顆失蹤已久的骰子、一包還沒拆的洋芋片。\n沒有找到：鞋子。');
+        return say('bro', '（……洋芋片先收著。）', 'happy');
+      }
       if (S().stage >= 4) return narr('哥哥的房間。模型們整齊地排排站，好像在等待下一章的冒險。');
       await narr('哥哥的房間。模型們正用期待的眼神看著你。');
       await say('bro', '等我回來，我的孩子們。', 'soft');
@@ -301,13 +304,14 @@ const Story = (() => {
     async shoerack() {
       const st = S();
       if (st.shoe === 0) {
-        await narr('鞋櫃。昨天勇者剛入手的新裝備——「限定版勇者球鞋」，應該就放在這裡。');
+        await narr('鞋櫃。昨天勇者用自己的錢買的新鞋，應該就放在這裡。');
+        await narr('……沒有。勇者回房間翻了三遍，也沒有。');
         shake();
-        await say('sys', '【系統訊息】裝備「限定版勇者球鞋」已被移除。');
-        await say('bro', '移、移除？！我昨天才剛買的耶！連一次都還沒穿過！', 'shock');
+        await say('sys', '警告！玩家裝備遭到未知管理員移除。');
+        await say('bro', '蛤？我只是買雙鞋欸！', 'shock');
         return startShoeQuest();
       }
-      if (st.shoe < 4) return narr('鞋櫃。妹妹的鞋有八雙，爸爸兩雙，媽媽的……不能說。\n勇者的：零雙。');
+      if (st.shoe < 4) return narr('鞋櫃。爸爸的拖鞋兩雙、媽媽的鞋子一整排。\n勇者的新鞋：零雙。');
       return narr('鞋櫃。世界恢復了和平。');
     },
     async sofa() {
@@ -315,12 +319,13 @@ const Story = (() => {
       if (st.shoe === 3) {
         await narr('勇者趴下來，往沙發底下看——');
         emote('player', '❗');
-        await narr('一個鞋盒！盒子上貼著一張很正式的公告：');
-        await say('sys', '【系統公告】\n偵測到未經申請的新裝備，已自動隔離。\n如有疑問，請洽系統管理員（不受理）。');
-        await say('bro', '隔離？！我的鞋子是中毒了嗎？！', 'shock');
+        await narr('一個鞋盒！盒子上貼著一張很正式的標籤：');
+        await say('sys', '【系統回收站】\n玩家裝備已被未知管理員移除。\n如有疑問，請洽管理員（目前無人回應）。');
+        await say('bro', '我的鞋子怎麼會在回收站？！', 'shock');
         await itemGet('shoebox');
-        await say('bro', '……還好，限定版球鞋毫髮無傷。', 'happy');
-        await say('sys', '勇者從回收站救回了裝備！\n習得新技能：「新東西要先藏在房間」。');
+        await say('bro', '……還好，鞋子毫髮無傷。', 'happy');
+        await say('sys', '勇者從回收站救回了裝備！');
+        await say('sys', '【隱藏彩蛋】新地圖「勇者的新家」將開放個人背包管理權。');
         st.shoe = 4; st.flags.shoes = true;
         toast('✅ 支線完成：神秘消失的裝備', 2600);
         emote('player', '✨');
@@ -359,11 +364,11 @@ const Story = (() => {
     if (!st.flags.shoes) {
       await narr('要出門了。勇者伸手拿昨天剛買的新鞋——');
       shake();
-      await say('sys', '【裝備欄】鞋子：空\n（該裝備已被系統管理員移除）');
+      await say('sys', '【裝備欄】鞋子：空\n（玩家裝備遭到未知管理員移除）');
       await say('bro', '我的新鞋呢？！', 'shock');
       if (st.shoe === 0) await startShoeQuest();
       const c = await choose('bro', '要怎麼辦……', ['穿拖鞋出門（媽媽可能會念）', '先去找鞋子']);
-      if (c === 1) return say('bro', '（先找鞋子吧。被刪掉的裝備，說不定還在回收站裡。）');
+      if (c === 1) return say('bro', '（先找鞋子吧。問問看家裡其他人。）');
       st.flags.slippers = true;
       await say('bro', '拖鞋也是鞋！勇者不拘小節！', 'happy');
     }
@@ -489,12 +494,11 @@ const Story = (() => {
       await say('mom', '……下次找仔細一點。', 'deadpan');
     }
     if (st.flags.shoes) {
-      await say('mom', '欸？你那雙新鞋怎麼又出現了？', 'shock');
-      await say('bro', '我從回收站救回來的。', 'happy');
-      await say('mom', '……下次買東西，先申請。', 'deadpan');
-      emote('sis', '📱');
-      await say('sis', '申請要排隊喔。審核期三到五個工作天，通過率個位數。', 'deadpan');
-      await say('bro', '（這個家的伺服器，今天也穩定運作中。）', 'deadpan');
+      await say('mom', '欸？你腳上那雙鞋哪來的？', 'shock');
+      await say('bro', '從回收站撿回來的。', 'happy');
+      await say('mom', '……回收站？家裡哪有那種東西。', 'normal');
+      await say('sis', '……', 'deadpan');
+      await say('bro', '（系統管理員，查無此人。）', 'deadpan');
       await say('sis', '……不過那雙鞋還蠻好看的啦。下次藏好一點。', 'soft');
       await say('bro', '（妹妹的好感度，偷偷 +1。）', 'happy');
     }

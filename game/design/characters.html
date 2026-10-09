@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>角色定稿對照圖｜宅男勇者的人生副本</title>
+<style>
+  :root { --bg: #f6efe4; --card: #fffaf2; --ink: #2f2420; --muted: #7a6a60; --line: #e3d6c4; --accent: #c0577a; --tbd: #b7791f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; }
+  header { padding: 20px 24px 8px; }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  .warn { background: #fff3d6; border: 2px solid #f0c36a; border-radius: 12px; padding: 10px 14px; margin: 10px 0; line-height: 1.6; font-size: 14px; }
+  .lineup { margin: 8px 24px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px 16px; }
+  .lineup h2, .card h2 { margin: 0 0 6px; font-size: 18px; }
+  .card { margin: 0 24px 18px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+  .card .role { color: var(--muted); font-size: 14px; margin-left: 6px; font-weight: 400; }
+  .views canvas { width: 300px; height: 220px; background: linear-gradient(#efe4d2, #e6d6bd); border-radius: 12px; display: block; }
+  .faces { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .faces figure { margin: 0; text-align: center; }
+  .faces canvas { width: 100%; aspect-ratio: 1; background: radial-gradient(circle, #fff 0 55%, #f3e7d6 56%); border-radius: 12px; display: block; }
+  .faces figcaption { font-size: 13px; margin-top: 3px; font-weight: 700; }
+  .spec { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-top: 10px; font-size: 13.5px; line-height: 1.6; }
+  .spec h3 { font-size: 13px; margin: 4px 0 2px; color: var(--accent); }
+  .spec ul { margin: 0; padding-left: 18px; }
+  .tbd { color: var(--tbd); }
+  .swatches { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .sw { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+  .sw i { width: 14px; height: 14px; border-radius: 4px; border: 1px solid #0003; display: inline-block; }
+  @media (max-width: 900px) { .card { grid-template-columns: 1fr; } .faces { grid-template-columns: repeat(3, 1fr); } .spec { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>角色定稿對照圖（v5 候選）</h1>
+  <div class="warn">
+    ⚠️ <b>沒有參考圖：</b>本專案目前沒有提供任何真人照片或原始角色參考圖，以下造型<b>全部依 Issue #1、#2 與總監文字規格繪製</b>，沒有參考任何照片。<br>
+    <span class="tbd">橘色「暫定」</span>＝規格沒有指定、由我先決定的部分（例如服裝顏色），請一起確認或修改。<br>
+    這版確認前，遊戲內仍是上一版角色；確認後才會整批替換。
+  </div>
+</header>
+
+<section class="lineup">
+  <h2>全員比例對照（同一比例尺）＋實際遊戲大小</h2>
+  <canvas id="lineup" style="width:100%;height:260px;display:block"></canvas>
+</section>
+
+<main id="cards"></main>
+
+<script src="cast.js"></script>
+<script>
+const SPEC = {
+  bro: {
+    ok: ['成年台灣男性，不是小男孩', '胖胖厚實的身形、圓臉、肉肉的臉頰', '短黑髮，兩側剪短', '適中大小的黑框眼鏡', '親切、自然的笑容', '休閒 T-shirt＋長褲'],
+    tbd: ['T 恤顏色：藍色', '長褲：卡其色（也可改短褲）', '鞋子：白色球鞋'],
+    removed: ['上一版的呆毛、「宅」字 T 恤、零食屑、白襪、超大圓框眼鏡（規格未指定，已移除）'],
+    colors: ['skin', 'hair', 'shirt', 'pants'],
+  },
+  dad: {
+    ok: ['成熟的中老年男性', '絕對不戴眼鏡', '自然短髮，略帶灰色', '樸素居家服裝', '表情平淡、低調', '與哥哥差異：臉較長、身形較瘦高、髮型服貼、髮線略高'],
+    tbd: ['居家 T 恤：橄欖灰', '居家長褲：深灰', '室內拖鞋'],
+    removed: ['八字鬍、明顯的灰白鬢角、白汗衫、抬頭紋（規格未確認，已移除）'],
+    colors: ['skin', 'hair', 'shirt', 'pants'],
+  },
+  mom: {
+    ok: ['台灣中年媽媽的生活感', '自然、有精神的短髮', '居家服＋圍裙', '雙手叉腰的站姿呈現強勢氣場', '不是反派臉'],
+    tbd: ['上衣：玫瑰色', '圍裙：米色', '髮色：深棕', '髮型長度：約到下巴'],
+    removed: ['爆炸捲髮、鍋鏟、雙手抱胸鮑伯頭、珍珠耳環（已移除）'],
+    colors: ['skin', 'hair', 'shirt', 'apron'],
+  },
+  sis: {
+    ok: ['成年女性，不是學生或小女孩', '穿著自然、有現代生活感', '姿態俐落、表情豐富', '與未來大嫂明顯不同：長髮 vs 短髮、較瘦長 vs 圓潤、冷色系 vs 暖色系'],
+    tbd: ['髮型：黑長直髮、旁分（⚠️ 規格提到「已確認的原始 Q 版設定」，但我沒有拿到這份設定，請提供）', '白 T＋淺藍襯衫外套', '深色長褲、白球鞋'],
+    removed: ['上一版的耳機、手機、耳環、斜背包（規格未指定，已移除）'],
+    colors: ['skin', 'hair', 'shirt', 'outer', 'pants'],
+  },
+  sil: {
+    ok: ['肩膀附近的短髮（髮尾內彎＋空氣瀏海）', '微肉感、圓潤臉型', '自然親切的笑容', '可愛、溫柔、生活感', '與妹妹的髮型、輪廓、服裝明顯不同'],
+    tbd: ['鼠尾草綠連身洋裝、棕色鞋', '髮色：暖棕', '六種表情為提案（規格未指定）：平常微笑／開心／害羞／擔心／驚訝／認真支持'],
+    removed: [],
+    colors: ['skin', 'hair', 'shirt'],
+  },
+};
+const COLOR_NAME = { skin: '膚色', hair: '髮色', shirt: '上衣', pants: '褲子', apron: '圍裙', outer: '外套' };
+const ORDER = ['bro', 'dad', 'mom', 'sis', 'sil'];
+
+function hiDPI(cv) {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(3, window.devicePixelRatio || 1);
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [ctx, r.width, r.height];
+}
+
+function list(title, items, cls) {
+  if (!items.length) return '';
+  return `<div><h3>${title}</h3><ul class="${cls || ''}">${items.map((i) => `<li>${i}</li>`).join('')}</ul></div>`;
+}
+
+const cards = document.getElementById('cards');
+ORDER.forEach((id) => {
+  const L = Cast.LOOKS[id], S = SPEC[id];
+  const el = document.createElement('section');
+  el.className = 'card';
+  const faces = Object.entries(L.expr).map(([k, e]) => `<figure><canvas data-face="${k}"></canvas><figcaption>${e.label}</figcaption></figure>`).join('');
+  const sw = S.colors.map((c) => `<span class="sw"><i style="background:${L[c]}"></i>${COLOR_NAME[c]}</span>`).join('');
+  el.innerHTML = `
+    <div class="views"><canvas></canvas><div class="swatches">${sw}</div></div>
+    <div>
+      <h2>${L.name}<span class="role">${L.role}</span></h2>
+      <div class="faces">${faces}</div>
+      <div class="spec">
+        ${list('✅ 依規格繪製', S.ok)}
+        ${list('🟧 暫定（請確認）', S.tbd, 'tbd')}
+        ${list('🗑️ 上一版已移除的元素', S.removed)}
+      </div>
+    </div>`;
+  cards.appendChild(el);
+  const [vctx, vw, vh] = hiDPI(el.querySelector('.views canvas'));
+  const M = Cast.metrics(L);
+  const k = (vh * 0.78) / -M.top;
+  [['down', 0.22], ['right', 0.55], ['up', 0.84]].forEach(([dir, fx]) => {
+    vctx.save(); vctx.translate(vw * fx, vh * 0.9); vctx.scale(k * (dir === 'down' ? 1 : 0.8), k * (dir === 'down' ? 1 : 0.8));
+    Cast.draw(vctx, 0, 0, L, { dir, face: 'normal' }); vctx.restore();
+  });
+  vctx.fillStyle = '#7a6a60'; vctx.font = '11px sans-serif'; vctx.textAlign = 'center';
+  vctx.fillText('正面', vw * 0.22, vh - 4); vctx.fillText('側面', vw * 0.55, vh - 4); vctx.fillText('背面', vw * 0.84, vh - 4);
+  el.querySelectorAll('.faces canvas').forEach((cv) => {
+    const r = cv.getBoundingClientRect(), dpr = Math.min(3, window.devicePixelRatio || 1);
+    cv.width = cv.height = Math.round(r.width * dpr);
+    Cast.portrait(cv, id, cv.dataset.face);
+  });
+});
+
+// 全員比例對照
+(() => {
+  const [ctx, w, h] = hiDPI(document.getElementById('lineup'));
+  const k = (h * 0.8) / 56;
+  ORDER.forEach((id, i) => {
+    const L = Cast.LOOKS[id];
+    ctx.save(); ctx.translate(w * 0.08 + i * w * 0.115, h * 0.9); ctx.scale(k, k);
+    Cast.draw(ctx, 0, 0, L, { face: 'normal' }); ctx.restore();
+    ctx.fillStyle = '#2f2420'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(L.name, w * 0.08 + i * w * 0.115, h - 4);
+  });
+  // 遊戲中實際大小（約 1.4 倍）
+  const gx = w * 0.66;
+  ctx.fillStyle = '#c99b6b'; ctx.fillRect(gx - 10, h * 0.45, w * 0.33, h * 0.5);
+  ctx.fillStyle = '#7a6a60'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('↓ iPhone 橫式遊戲中的實際大小', gx - 10, h * 0.42);
+  ORDER.forEach((id, i) => {
+    ctx.save(); ctx.translate(gx + 22 + i * 48, h * 0.88); ctx.scale(1.4, 1.4);
+    Cast.draw(ctx, 0, 0, Cast.LOOKS[id], { face: 'normal' }); ctx.restore();
+  });
+})();
+</script>
+</body>
+</html>
