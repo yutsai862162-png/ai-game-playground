@@ -20,7 +20,7 @@
   dirs.forEach(dir => {
     frames[dir] = Array.from({length:4},(_,i)=>makeImage('bro_'+dir+'_'+i));
   });
-  Object.values(new Set(Object.values(faces))).forEach(face => {
+  Array.from(new Set(Object.values(faces))).forEach(face => {
     portraits[face] = makeImage('bro_'+face);
   });
   const ready = img => !!(img && img.complete && img.naturalWidth > 0);
