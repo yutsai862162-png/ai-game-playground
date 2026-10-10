@@ -85,6 +85,9 @@
   }
   function makeImage(name) {
     const img = new Image();
+    // Public image hosts may redirect to another origin. Request anonymous
+    // CORS permission before src so alpha-bound reads stay origin-clean.
+    img.crossOrigin = 'anonymous';
     img.decoding = 'async';
     const settled = () => { prepareLayout(); queueRepaint(); };
     img.addEventListener('load', settled);
