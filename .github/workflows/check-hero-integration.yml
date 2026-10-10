@@ -5,6 +5,7 @@ on:
     paths:
       - 'game/**'
       - 'tests/hero-integration.cjs'
+      - 'tests/hero-walk-geometry.cjs'
       - '.github/workflows/check-hero-integration.yml'
 permissions:
   contents: read
@@ -27,6 +28,7 @@ jobs:
         run: |
           node --check game/hero-assets.js
           node --check tests/hero-integration.cjs
+          node --check tests/hero-walk-geometry.cjs
           git show 24dbe8f0156dd90a2ded0da9fed208b3e3b7e0bc:game/game.js > "$RUNNER_TEMP/approved-game.js"
           cmp "$RUNNER_TEMP/approved-game.js" game/game.js
           echo 'Approved game controls: identical bytes'
@@ -39,7 +41,9 @@ jobs:
       - name: Test actual game with Chromium and WebKit
         env:
           NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
-        run: node tests/hero-integration.cjs
+        run: |
+          node tests/hero-integration.cjs
+          node tests/hero-walk-geometry.cjs
       - name: Archive evidence and tested source
         if: always()
         run: |
