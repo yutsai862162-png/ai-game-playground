@@ -71,6 +71,15 @@ button:disabled{cursor:default}
 #tapbtn{width:150px;height:150px;border-radius:50%;background:var(--sun);border:4px solid var(--line);box-shadow:0 8px 0 var(--line);font-family:var(--display);font-weight:700;font-size:34px;touch-action:manipulation}
 #tapbtn:active{transform:translateY(6px);box-shadow:0 2px 0 var(--line)}
 #tap p{color:var(--paper);font-weight:800;margin:0}
+#quiz{align-items:center;justify-content:center;gap:14px;background:rgba(59,42,77,.6);padding:18px;text-align:center}
+#quiz h2{font-family:var(--display);color:var(--paper);font-size:23px;line-height:1.4;margin:0;max-width:20em;text-wrap:balance}
+#qshow{font-size:44px;line-height:1.2;letter-spacing:.1em;background:var(--paper);border:3px solid var(--line);border-radius:16px;padding:8px 16px}
+#quiz .choices{width:min(320px,100%);margin:0}
+#quiz .choices button{text-align:center;font-size:18px;padding:12px}
+#quiz .choices button:first-child{background:#fff}
+#qtrack{position:relative;width:min(300px,100%);height:34px;background:var(--paper);border:3px solid var(--line);border-radius:12px;overflow:hidden}
+#qzone{position:absolute;top:0;bottom:0;background:var(--mint)}
+#qptr{position:absolute;top:-2px;bottom:-2px;width:8px;margin-left:-4px;background:var(--ink);border-radius:4px}
 
 .panel{background:var(--paper);overflow:auto;padding:14px;gap:12px;touch-action:pan-y}
 .panel h2{font-family:var(--display);font-size:26px;margin:0}
@@ -174,6 +183,14 @@ button:disabled{cursor:default}
       <p>時間條跑完前把忍耐力點滿</p>
     </div>
 
+    <div class="layer" id="quiz" hidden>
+      <h2 id="qhead"></h2>
+      <div id="qshow" hidden></div>
+      <div id="qtrack" hidden><div id="qzone"></div><div id="qptr"></div></div>
+      <div class="choices" id="qopts"></div>
+      <div class="bar time" id="qtimebar"><i id="qtime"></i></div>
+    </div>
+
     <div class="layer panel" id="shop" hidden>
       <div class="wtop">
         <canvas id="pv" width="300" height="340"></canvas>
@@ -251,19 +268,23 @@ const TEMPT=[
   {who:'糖葫蘆姐姐',food:'🍡',sign:'糖葫蘆',line:'草莓糖葫蘆，外面脆脆、裡面酸酸甜甜的～',money:40,sec:10,name:'糖葫蘆'}
 ];
 const MATES=[
-  {who:'同學小美',food:'🃏',name:'貼紙',line:'欸欸！文具店進了新的貼紙和卡牌，一起去看嘛，看一下下就好！',money:40,sec:12,after:'和小美挑了好多貼紙，好開心！',slip:'腳自己跟著小美走進文具店了……',st:{body:'#ffb3c9',hair:'#3a2a2a',s:0.82,bun:true}},
-  {who:'同學阿哲',food:'🎲',name:'一番賞',line:'我們要去便利商店抽一番賞，聽說還有大獎沒被抽走，妳也來！',money:60,sec:13,after:'和阿哲抽了一番賞，抽到小吊飾。',slip:'還是忍不住跟阿哲去抽了一張……',st:{body:'#a9d4ff',hair:'#2f2a33',s:0.82}},
-  {who:'同學小安',food:'🏀',name:'投籃機',line:'公園旁邊新開了投籃機，我們來比賽誰投得多，走嘛！',money:30,sec:14,after:'和小安比了一場投籃，好過癮！',slip:'被小安拉去投了一場籃球……',st:{body:'#ffe58a',hair:'#5a3a2a',s:0.82}},
-  {who:'班長',food:'🥤',name:'手搖飲',line:'我要去買手搖飲，第二杯比較便宜，我們一人一杯剛剛好！',money:45,sec:11,after:'和班長一人一杯，冰冰涼涼的真好喝！',slip:'還是跟班長合買了一杯……',st:{body:'#a8e6d1',hair:'#1f1a24',s:0.82,perm:true}},
-  {who:'同學小語',food:'📺',name:'動畫',line:'我家就在旁邊，新的一集今天更新耶！順便買包零食，看完再走嘛～',money:35,sec:15,after:'和小語看了一集動畫，還吃了零食。',slip:'想說看五分鐘就好，結果看完一整集……',st:{body:'#cdbdf2',hair:'#6a4a3a',s:0.82}}
+  {who:'同學小美',food:'🃏',name:'貼紙',line:'欸欸！文具店進了新的貼紙和卡牌，一起去看嘛，看一下下就好！',money:40,sec:12,after:'和小美挑了好多貼紙，好開心！',slip:'腳自己跟著小美走進文具店了……',ch:'timing',dare:'那這樣！妳幫我停在綠色的地方，停對了我就不吵妳。',st:{body:'#ffb3c9',hair:'#3a2a2a',s:0.82,bun:true}},
+  {who:'同學阿哲',food:'🎲',name:'一番賞',line:'我們要去便利商店抽一番賞，聽說還有大獎沒被抽走，妳也來！',money:60,sec:13,after:'和阿哲抽了一番賞，抽到小吊飾。',slip:'還是忍不住跟阿哲去抽了一張……',ch:'rps',dare:'不然猜拳！妳贏我或平手，我就自己去。',st:{body:'#a9d4ff',hair:'#2f2a33',s:0.82}},
+  {who:'同學小安',food:'🏀',name:'投籃機',line:'公園旁邊新開了投籃機，我們來比賽誰投得多，走嘛！',money:30,sec:14,after:'和小安比了一場投籃，好過癮！',slip:'被小安拉去投了一場籃球……',ch:'memory',dare:'那考妳記憶力！記得住我就放妳走。',st:{body:'#ffe58a',hair:'#5a3a2a',s:0.82}},
+  {who:'班長',food:'🥤',name:'手搖飲',line:'我要去買手搖飲，第二杯比較便宜，我們一人一杯剛剛好！',money:45,sec:11,after:'和班長一人一杯，冰冰涼涼的真好喝！',slip:'還是跟班長合買了一杯……',ch:'math',dare:'答對這題數學，我就不拉妳去。',st:{body:'#a8e6d1',hair:'#1f1a24',s:0.82,perm:true}},
+  {who:'同學小語',food:'📺',name:'動畫',line:'我家就在旁邊，新的一集今天更新耶！順便買包零食，看完再走嘛～',money:35,sec:15,after:'和小語看了一集動畫，還吃了零食。',slip:'想說看五分鐘就好，結果看完一整集……',ch:'eng',dare:'那考妳一個英文單字，答對就放妳走！',st:{body:'#cdbdf2',hair:'#6a4a3a',s:0.82}}
 ];
 const QUESTS=[
   {id:'cat',who:'王奶奶',title:'找小橘',ask:'小公主～我們家的貓小橘又溜出去了，妳在路上看到可以幫我抱回來嗎？',items:[{k:'cat',dx:540,h:22}],doneWho:'小公主',done:'抱到小橘了！回家的時候送去給王奶奶。'},
   {id:'paper',who:'陳伯伯',title:'撿報紙',ask:'唉呀，我的報紙被風吹走了！妳腳程快，可以幫我撿回來嗎？一共三張。',items:[{k:'paper',dx:390,h:70},{k:'paper',dx:540,h:150},{k:'paper',dx:690,h:64}],doneWho:'小公主',done:'三張都撿到了！陳伯伯一定很開心。'},
   {id:'balloon',who:'隔壁小弟弟',title:'抓氣球',ask:'嗚嗚……我的氣球飛走了，姐姐可以幫我抓回來嗎？它飛得好高。',items:[{k:'balloon',dx:540,h:200}],doneWho:'小公主',done:'抓到氣球了！小弟弟不用哭了。'},
-  {id:'bento',who:'林阿姨',title:'送便當',ask:'可以幫阿姨把便當拿給前面巷口的警衛叔叔嗎？路上不要撞到東西，便當會打翻喔！',deliver:true,dx:720,doneWho:'警衛叔叔',done:'便當還熱熱的，一點都沒灑出來，謝謝小公主！'}
+  {id:'bento',who:'林阿姨',title:'送便當',ask:'可以幫阿姨把便當拿給前面巷口的警衛叔叔嗎？路上不要撞到東西，便當會打翻喔！',deliver:true,dx:720,failHit:'便當打翻了……',doneWho:'警衛叔叔',done:'便當還熱熱的，一點都沒灑出來，謝謝小公主！'},
+  {id:'dog',who:'李叔叔',title:'遛小黑',ask:'我腳扭到了，可以幫我把小黑牽到前面的公園口嗎？牠跑很快，妳要跟緊，別撞到東西喔！',deliver:true,fast:true,dx:820,failHit:'小黑嚇一跳，自己跑回家了……',doneWho:'小公主',done:'到公園口了！小黑一直搖尾巴，好像很開心。'},
+  {id:'ball',who:'巷口的小妹妹',title:'追皮球',ask:'我的皮球彈走了！它一直跳一直跳，姐姐可以幫我抓住嗎？',items:[{k:'ball',dx:560,h:0,bounce:true}],doneWho:'小公主',done:'抓到皮球了！它跳得真高。'},
+  {id:'change',who:'雜貨店老闆娘',title:'幫忙找零',quiz:'change',ask:'妹妹，阿姨的老花眼鏡忘了帶，可以幫我算一下要找客人多少錢嗎？',fail:'哎呀，好像算錯了。沒關係，阿姨用計算機再按一次。',doneWho:'雜貨店老闆娘',done:'算得又快又對，謝謝妳！'},
+  {id:'place',who:'迷路的觀光客',title:'英文指路',quiz:'place',ask:'Excuse me! Can you help me?（他好像迷路了，要幫他嗎？）',fail:'（好像指錯方向了……他改去問別人了。）',doneWho:'迷路的觀光客',done:'Thank you so much!'}
 ];
-const NPCSTYLE={cat:{body:'#c98fb0',hair:'#d8d8de',bun:true},paper:{body:'#7fa6c9',hair:'#8a8a92'},balloon:{body:'#ffd35c',hair:'#3a2a2a',s:0.72},bento:{body:'#8fd0b0',hair:'#5a3a2a',perm:true},guard:{body:'#4a6fb5',hair:'#2f2a33',cap:true},mom:{body:'#ff9aa8',hair:'#3a2a2a',perm:true}};
+const NPCSTYLE={cat:{body:'#c98fb0',hair:'#d8d8de',bun:true},paper:{body:'#7fa6c9',hair:'#8a8a92'},balloon:{body:'#ffd35c',hair:'#3a2a2a',s:0.72},bento:{body:'#8fd0b0',hair:'#5a3a2a',perm:true},guard:{body:'#4a6fb5',hair:'#2f2a33',cap:true},dog:{body:'#6f9f7a',hair:'#3a2a2a'},ball:{body:'#ff9ec0',hair:'#3a2a2a',s:0.7,bun:true},change:{body:'#e0a070',hair:'#5a3a2a',perm:true},place:{body:'#7fc4e0',hair:'#d9a441',cap:true},mom:{body:'#ff9aa8',hair:'#3a2a2a',perm:true}};
 const LEVELS=[
   {id:'l1',name:'放學鐘響',desc:'第一次自己走去補習班',type:'time',scene:'day',len:9000,stalls:3,mates:1,npcs:1,sp:[230,60],gap:[380,260],slack:16,goal:'補習班',need:0},
   {id:'l2',name:'幫媽媽買醬油',desc:'帶 200 元，要留 150 元買東西',type:'money',scene:'day',len:10000,stalls:4,mates:1,npcs:1,sp:[240,70],gap:[360,250],money:200,keep:150,goal:'超市',need:1},
@@ -469,7 +490,9 @@ function drawMom(c,x,e){
 }
 function drawQ(c,x,e){
   if(e.k==='guard'){fig(c,x,NPCSTYLE.guard);bubble(c,x,gy-112+Math.sin(g.t*5)*3,'🍱');return;}
-  const y=gy-e.h+Math.sin(g.t*4+e.x)*4;
+  if(e.k==='flag'){c.fillStyle='#8a6a48';c.fillRect(x-3,gy-96,6,96);c.fillStyle='#5fbf8a';rr(c,x-34,gy-124,68,32,8);c.fill();c.strokeStyle='#3b2a4d';c.lineWidth=2.5;c.stroke();
+    c.fillStyle='#fff';c.font='700 17px '+FONT;c.textAlign='center';c.textBaseline='middle';c.fillText('公園口',x,gy-107);return;}
+  const y=gy-qh(e)+(e.bounce?0:Math.sin(g.t*4+e.x)*4);
   c.fillStyle='rgba(255,207,74,.4)';c.beginPath();c.arc(x,y,26+Math.sin(g.t*6)*3,0,7);c.fill();
   if(e.k==='cat'){
     c.strokeStyle='#e08f3c';c.lineWidth=4;c.lineCap='round';c.beginPath();c.moveTo(x+14,y+6);c.quadraticCurveTo(x+26,y+2,x+22,y-10);c.stroke();
@@ -481,6 +504,10 @@ function drawQ(c,x,e){
     c.fillStyle='#fff';c.fillRect(-11,-14,22,28);c.strokeStyle='#3b2a4d';c.lineWidth=1.5;c.strokeRect(-11,-14,22,28);
     c.fillStyle='#3b2a4d';c.fillRect(-8,-11,16,4);c.fillStyle='#b9b2c4';for(let i=0;i<4;i++)c.fillRect(-8,-4+i*4.5,16,2);
     c.restore();
+  }else if(e.k==='ball'){
+    c.fillStyle='#ff6f6f';c.beginPath();c.arc(x,y,15,0,7);c.fill();
+    c.fillStyle='#fff';c.beginPath();c.arc(x,y,15,-0.6,0.6);c.arc(x,y,15,Math.PI-0.6,Math.PI+0.6);c.fill();
+    c.fillStyle='#ffcf4a';c.beginPath();c.arc(x,y,5,0,7);c.fill();
   }else{
     c.strokeStyle='#7a6a8c';c.lineWidth=1.3;line(c,x,y+16,x+4,y+50);
     c.fillStyle='#ff6f8f';c.beginPath();c.ellipse(x,y,14,17,0,0,7);c.fill();
@@ -664,6 +691,8 @@ function drawWorld(){
   if(g.boost>0&&lv){c.fillStyle='#7f8fe0';rr(c,gx-22,gy-g.py-5,44,6,3);c.fill();c.fillStyle='#3b2a4d';c.beginPath();c.arc(gx-13,gy-g.py+2,3.5,0,7);c.arc(gx+13,gy-g.py+2,3.5,0,7);c.fill();}
   if(!(g.inv>0&&g.boost<=0&&Math.floor(g.t*14)%2))
     drawGirl(c,gx,gy-g.py-(g.boost>0&&lv?5:0),gs,S.fit,g.t,{run:running&&g.boost<=0,air:g.py>0,face:g.face});
+  if(lv&&g.quest&&g.quest.def.fast){c.strokeStyle='#e0607e';c.lineWidth=2;line(c,gx+24,gy-g.py-40,gx+62,gy-22);
+    c.save();c.translate(gx+92,0);c.scale(-1,1);c.filter='brightness(0.35)';drawOb(c,0,{k:'dog'});c.restore();}
   if(g.shield>0&&lv){c.strokeStyle='rgba(127,211,187,.9)';c.lineWidth=3;c.beginPath();c.arc(gx,gy-g.py-52,62,0,7);c.stroke();}
   for(const p of g.fx){c.globalAlpha=Math.max(0,Math.min(1,p.life*2));c.fillStyle=p.col;c.font='800 15px sans-serif';c.textAlign='center';c.fillText(p.txt,p.x-g.camX,gy-p.h);c.globalAlpha=1;}
   if(sc.rain){c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=1.5;
@@ -671,7 +700,7 @@ function drawWorld(){
 }
 
 /* ---------- flow ---------- */
-const layers=['title','map','dialog','tap','shop','book','result'];
+const layers=['title','map','dialog','tap','quiz','shop','book','result'];
 function show(id){layers.forEach(function(l){$(l).hidden=l!==id;});}
 function setFace(f,d){g.face=f;g.faceT=d||1.2;}
 function pop(x,h,txt,col,life){g.fx.push({x:x,h:h,life:life||0.8,txt:txt,col:col||'#c2506a'});}
@@ -732,7 +761,7 @@ function meetStall(e){
 function meetMate(e){
   e.done=true;g.met++;const tm=e.tm;beep(620,0.12,'triangle');
   say(tm.who,tm.line,{choices:[
-    {label:'下次再約！我先去辦正事',fn:function(){startTap(tm);}},
+    {label:'下次再約！我先去辦正事',fn:function(){challenge(tm);}},
     {label:'好啊走！（'+costText(tm)+'）',fn:function(){buy(tm,false);}}
   ]});
 }
@@ -767,26 +796,92 @@ function tapHit(){
   if(g.mode!=='tap')return;
   tp.n++;beep(500+tp.n*30,0.05);
   $('twill').style.width=Math.min(100,tp.n/tp.need*100)+'%';
-  if(tp.n>=tp.need){
-    g.resisted++;g.stars+=5;setFace('happy',2);hud();beep(880,0.15,'triangle');setTimeout(function(){beep(1175,0.2,'triangle');},120);
-    const lines=['走過去了！一點都不難嘛。','我可是有任務在身的小公主！','再見～我忍住了！','下次媽媽同意再來。','小白襪也說不可以。'];
-    say('小公主',lines[Math.floor(rnd()*lines.length)]+'（忍住成功，★ +5）',{next:resume});
-  }
+  if(tp.n>=tp.need)resistWin();
 }
+function resistWin(){
+  g.resisted++;g.stars+=5;setFace('happy',2);hud();beep(880,0.15,'triangle');setTimeout(function(){beep(1175,0.2,'triangle');},120);
+  const lines=['走過去了！一點都不難嘛。','我可是有任務在身的小公主！','再見～我忍住了！','下次媽媽同意再來。','小白襪也說不可以。'];
+  say('小公主',lines[Math.floor(rnd()*lines.length)]+'（忍住成功，★ +5）',{next:resume});
+}
+
+/* quiz-style challenges: classmates each dare her differently, some neighbours need brains not legs */
+const qz={left:0,total:0,onTimeout:null,timing:null};
+function ask(cfg){
+  g.mode='quiz';show('quiz');
+  $('qhead').textContent=cfg.head;$('qshow').textContent=cfg.show||'';$('qshow').hidden=!cfg.show;
+  qz.timing=cfg.timing||null;$('qtrack').hidden=!cfg.timing;
+  if(cfg.timing){$('qzone').style.left=(cfg.timing.z0*100)+'%';$('qzone').style.width=((cfg.timing.z1-cfg.timing.z0)*100)+'%';}
+  qz.total=qz.left=cfg.secs||0;qz.onTimeout=cfg.onTimeout||null;$('qtimebar').hidden=!cfg.secs;$('qtime').style.width='100%';
+  const box=$('qopts');box.innerHTML='';
+  (cfg.opts||[]).forEach(function(o){const b=document.createElement('button');b.textContent=o.label;
+    b.addEventListener('click',function(){if(g.mode==='quiz'){qz.total=0;o.fn();}});box.appendChild(b);});
+}
+function quizOpts(correct,wrongs,onOk,onFail){
+  return shuffle([correct].concat(wrongs)).map(function(l){return {label:String(l),fn:l===correct?function(){beep(988,0.12,'triangle');onOk();}:onFail};});
+}
+function ri(a,b){return a+Math.floor(rnd()*(b-a+1));}
+function near(ans){return shuffle([ans+10,ans-10,ans+1,ans-1,ans+2,ans+5].filter(function(v){return v>0&&v!==ans;})).slice(0,2);}
+function mathQ(){
+  const r=rnd();let a,b,ans,q;
+  if(r<0.35){a=ri(18,79);b=ri(13,68);ans=a+b;q=a+' + '+b+' = ?';}
+  else if(r<0.65){a=ri(52,99);b=ri(13,48);ans=a-b;q=a+' − '+b+' = ?';}
+  else{a=ri(3,12);b=ri(3,9);ans=a*b;q=a+' × '+b+' = ?';}
+  return {q:q,a:ans,w:near(ans)};
+}
+function changeQ(){
+  const p1=5*ri(4,10),p2=5*ri(2,7),ans=100-p1-p2;
+  return {q:'客人買了 '+p1+' 元和 '+p2+' 元的東西，付 100 元，要找多少？',a:ans+' 元',w:shuffle([ans+5,ans+10,ans-5,ans+15].filter(function(v){return v>=0;})).slice(0,2).map(function(v){return v+' 元';})};
+}
+const WORDS=[['umbrella','雨傘'],['library','圖書館'],['breakfast','早餐'],['neighbor','鄰居'],['homework','功課'],['Saturday','星期六'],['kitchen','廚房'],['weather','天氣'],['hungry','肚子餓'],['cheap','便宜的'],['expensive','貴的'],['borrow','借'],['medicine','藥'],['bicycle','腳踏車'],['vegetable','蔬菜'],['dangerous','危險的'],['careful','小心的'],['delicious','好吃的'],['tired','累的'],['classmate','同學'],['snack','零食'],['promise','約定'],['patient','有耐心的'],['finish','完成'],['wallet','錢包'],['corner','轉角'],['early','早的'],['forget','忘記'],['remember','記得'],['share','分享']];
+const PLACES=[['library','圖書館'],['hospital','醫院'],['train station','火車站'],['park','公園'],['supermarket','超市'],['post office','郵局'],['police station','警察局'],['bank','銀行'],['temple','廟'],['night market','夜市'],['school','學校'],['bookstore','書店']];
+function pairQ(list){const s=shuffle(list);return {en:s[0][0],a:s[0][1],w:[s[1][1],s[2][1]]};}
+function challenge(tm){
+  const win=resistWin,lose=function(){buy(tm,true);};
+  say(tm.who,tm.dare,{next:function(){
+    if(tm.ch==='rps'){
+      const names=['石頭 ✊','剪刀 ✌️','布 🖐️'];
+      ask({head:'猜拳！出什麼？',secs:6,onTimeout:lose,opts:names.map(function(n,me){return {label:n,fn:function(){
+        const opp=ri(0,2),res=(opp-me+3)%3;
+        if(res===1)say(tm.who,'我出'+names[opp]+'……好啦，妳贏了，我自己去。',{next:win});
+        else if(res===0)say(tm.who,'我也出'+names[opp]+'，平手！算妳厲害。',{next:win});
+        else say(tm.who,'我出'+names[opp]+'，妳輸了！走吧走吧～',{next:lose});
+      }};})});
+    }else if(tm.ch==='memory'){
+      const seq=shuffle(['🍎','🐶','⭐','🎈','🌸','🚲','🍙']).slice(0,4),i=ri(0,3);
+      ask({head:'記住順序！',show:seq.join(' '),secs:2.6,onTimeout:function(){
+        ask({head:'第 '+(i+1)+' 個是什麼？',secs:6,onTimeout:lose,opts:quizOpts(seq[i],seq.filter(function(_,j){return j!==i;}),win,lose)});
+      }});
+    }else if(tm.ch==='math'){
+      const m=mathQ();ask({head:m.q,secs:9,onTimeout:lose,opts:quizOpts(m.a,m.w,win,lose)});
+    }else if(tm.ch==='eng'){
+      const w=pairQ(WORDS);ask({head:'「'+w.en+'」是什麼意思？',secs:8,onTimeout:lose,opts:quizOpts(w.a,w.w,win,lose)});
+    }else{
+      const z=0.15+rnd()*0.55,t={pos:0,dir:1,speed:1.15+Math.min(0.6,g.idx*0.08),z0:z,z1:z+0.24};g.idx++;
+      ask({head:'停在綠色的地方！',timing:t,secs:7,onTimeout:lose,opts:[{label:'停！',fn:function(){if(t.pos>=t.z0&&t.pos<=t.z1){beep(988,0.12,'triangle');win();}else lose();}}]});
+    }
+  }});
+}
+function qh(e){return e.bounce?26+Math.abs(Math.sin(g.t*2.7))*150:e.h;}
 $('tapbtn').addEventListener('pointerdown',function(e){e.preventDefault();tapHit();});
 
 /* neighbours */
 function meetNpc(e){
   e.done=true;const q=e.q;beep(740,0.12,'triangle');
   say(q.who,q.ask,{choices:[
-    {label:'好，交給我！',fn:function(){acceptQuest(q);}},
+    {label:q.quiz?'好，我試試！':'好，交給我！',fn:function(){acceptQuest(q);}},
     {label:'對不起，我在趕時間……',fn:function(){say(q.who,'沒關係，路上小心喔。',{next:resume});}}
   ]});
 }
 function acceptQuest(q){
+  if(q.quiz){
+    const ok=function(){questReward(q);},no=function(){say(q.who,q.fail,{next:resume});};
+    if(q.quiz==='change'){const c=changeQ();ask({head:c.q,secs:12,onTimeout:no,opts:quizOpts(c.a,c.w,ok,no)});}
+    else{const w=pairQ(PLACES);ask({head:'「Where is the '+w.en+'?」他要去哪裡？',secs:9,onTimeout:no,opts:quizOpts(w.a,w.w,ok,no)});}
+    return;
+  }
   if(g.quest)g.quest.ents.forEach(function(n){n.got=true;});
   const px=g.camX+PX;
-  const ents=q.deliver?[{type:'qitem',k:'guard',x:px+q.dx,h:0}]:q.items.map(function(it){return {type:'qitem',k:it.k,x:px+it.dx,h:it.h};});
+  const ents=q.deliver?[{type:'qitem',k:q.fast?'flag':'guard',goal:true,x:px+q.dx,h:0}]:q.items.map(function(it){return {type:'qitem',k:it.k,x:px+it.dx,h:it.h,bounce:it.bounce};});
   g.ents=g.ents.filter(function(o){return !(o.type==='ob'&&ents.some(function(n){return Math.abs(o.x-n.x)<110;}));});
   ents.forEach(function(n){g.ents.push(n);});
   g.quest={def:q,need:ents.length,got:0,ents:ents,endX:ents[ents.length-1].x+130};
@@ -795,11 +890,14 @@ function acceptQuest(q){
 function gotItem(e){
   const q=g.quest;e.got=true;q.got++;beep(1175,0.1,'triangle');
   if(q.got<q.need){pop(e.x,e.h+20,q.got+'/'+q.need,'#e0a21a',0.7);hud();return;}
+  questReward(q.def);
+}
+function questReward(def){
   g.quest=null;g.helped++;g.stars+=15;setFace('happy',2);
   let tip='（★ +15）';
   if(g.lv.type==='money'){g.money+=10;tip='（★ +15，還拿到 10 元謝禮）';}
   hud();setTimeout(function(){beep(1568,0.2,'triangle');},120);
-  say(q.def.doneWho,q.def.done+tip,{next:resume});
+  say(def.doneWho,def.done+tip,{next:resume});
 }
 function dropQuest(txt,px){
   g.quest.ents.forEach(function(n){n.got=true;});g.quest=null;pop(px,125,txt,'#c2506a',1.3);hud();
@@ -815,7 +913,7 @@ function hitOb(px,e){
   g.hits++;
   if(g.shield>0){g.shield--;g.inv=1.2;pop(px,110,'擋住了！','#3f9f86',0.9);beep(440,0.12,'triangle');return;}
   g.stun=0.7;g.inv=1.5;setFace('ouch',1);beep(160,0.2,'sawtooth');
-  if(g.quest&&g.quest.def.deliver)dropQuest('便當打翻了……',px);
+  if(g.quest&&g.quest.def.deliver)dropQuest(g.quest.def.failHit,px);
   const t=g.lv.type;
   if(t==='money'&&g.money>0){g.money=Math.max(0,g.money-5);pop(px,90,'掉了 5 元');}
   else if(t==='endless'){g.hp--;pop(px,90,'少一顆愛心');}
@@ -917,7 +1015,7 @@ function update(dt){
   const lv=g.lv,endless=lv.type==='endless',prog=endless?0:g.camX/lv.len;
   g.stun=Math.max(0,g.stun-dt);g.inv=Math.max(0,g.inv-dt);g.boost=Math.max(0,g.boost-dt);g.magnet=Math.max(0,g.magnet-dt);
   let v=endless?240+Math.min(220,g.camX/140):lv.sp[0]+lv.sp[1]*prog;
-  if(g.boost>0)v*=1.55;if(g.stun>0)v*=0.25;
+  if(g.boost>0)v*=1.55;if(g.quest&&g.quest.def.fast)v*=1.35;if(g.stun>0)v*=0.25;
   g.camX+=v*dt;
   if(g.py>0||g.vy>0){g.vy-=1900*dt;g.py+=g.vy*dt;if(g.py<=0){g.py=0;g.vy=0;g.jumps=0;}}
   g.ph.push(g.py);if(g.ph.length>9)g.ph.shift();
@@ -939,7 +1037,7 @@ function update(dt){
       if(g.boost>0){e.dead=true;g.stars+=2;pop(e.x,70,'撞飛！+2','#e0a21a',0.6);beep(220,0.08);}
       else if(g.inv<=0){hitOb(px,e);if(endless&&g.hp<=0){finishEndless();return;}}
     }
-    else if(e.type==='qitem'){if(!e.got&&g.quest&&Math.abs(d)<30&&(e.k==='guard'||Math.abs(e.h-(g.py+40))<56)){gotItem(e);if(g.mode!=='run')return;}}
+    else if(e.type==='qitem'){if(!e.got&&g.quest&&Math.abs(d)<30&&(e.goal||Math.abs(qh(e)-(g.py+40))<56)){gotItem(e);if(g.mode!=='run')return;}}
     else if(e.done||d>=150)continue;
     else if(e.type==='stall'){meetStall(e);return;}
     else if(e.type==='mate'){meetMate(e);return;}
@@ -964,6 +1062,12 @@ function frame(ts){
     if(!reduce)g.camX+=70*dt;
     g.lift=g.mode==='title'?Math.max(0,$('tsheet').offsetHeight/scale-40):0;
   }else if(g.mode==='run')update(dt);
+  else if(g.mode==='quiz'){
+    const t=qz.timing;
+    if(t){t.pos+=t.dir*t.speed*dt;if(t.pos>1){t.pos=1;t.dir=-1;}if(t.pos<0){t.pos=0;t.dir=1;}$('qptr').style.left=(t.pos*100)+'%';}
+    if(qz.total>0){qz.left-=dt;$('qtime').style.width=Math.max(0,qz.left/qz.total*100)+'%';
+      if(qz.left<=0){qz.total=0;const f=qz.onTimeout;if(f)f();}}
+  }
   else if(g.mode==='tap'){
     tp.left-=dt;$('ttime').style.width=Math.max(0,tp.left/tp.total*100)+'%';
     if(tp.left<=0&&tp.n<tp.need)buy(tp.tm,true);
