@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><style>:root{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style></head><body>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no"><style>body{margin:0;position:fixed;top:env(safe-area-inset-top,0);bottom:env(safe-area-inset-bottom,0);left:0;right:0;height:auto!important}[hidden]{display:none!important}</style></head><body>
 <title>小公主的放學路</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@500;800&display=swap">
 <style>
@@ -11,7 +11,7 @@
   --display:"LXGW WenKai TC","PingFang TC","Microsoft JhengHei",serif;
   --ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
 }
-html,body{height:100%}
+html,body{height:100%;touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 body{background:var(--sky);color:var(--ink);font-family:var(--ui);font-size:15px;overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #app{height:100%;max-width:900px;margin:0 auto;padding-inline:16px;padding-block:10px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box}
@@ -905,6 +905,12 @@ addEventListener('keydown',function(e){
   else if(g.mode==='tap'){e.preventDefault();if(!e.repeat)tapHit();}
   else if(g.mode==='talk'&&!(dq&&dq.done&&dq.choices)){e.preventDefault();advance();}
 });
+
+/* keep phone browsers from zooming or scrolling the page while tapping fast */
+['gesturestart','gesturechange','dblclick'].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault();},{passive:false});});
+document.addEventListener('touchmove',function(e){if(e.touches.length>1||!e.target.closest('.panel'))e.preventDefault();},{passive:false});
+let lastTouch=0;
+document.addEventListener('touchend',function(e){const n=Date.now();if(n-lastTouch<350&&!e.target.closest('button,.dbox'))e.preventDefault();lastTouch=n;},{passive:false});
 
 /* ---------- loop ---------- */
 function update(dt){
