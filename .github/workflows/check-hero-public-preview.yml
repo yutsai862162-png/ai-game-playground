@@ -1,0 +1,42 @@
+name: Hero public preview check
+on:
+  push:
+    branches: [gpt/hero-art-integration]
+    paths:
+      - 'tests/hero-public-preview.cjs'
+      - '.github/workflows/check-hero-public-preview.yml'
+permissions:
+  contents: read
+concurrency:
+  group: hero-public-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  preview-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check script syntax
+        run: node --check tests/hero-public-preview.cjs
+      - name: Install isolated browser test dependency
+        run: |
+          mkdir -p "$RUNNER_TEMP/hero-preview"
+          cd "$RUNNER_TEMP/hero-preview"
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Open actual pinned HTTPS preview in mobile-emulation browsers
+        env:
+          NODE_PATH: ${{ runner.temp }}/hero-preview/node_modules
+        run: node tests/hero-public-preview.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hero-public-preview-evidence
+          path: preview-results/
+          retention-days: 7
+          if-no-files-found: warn
