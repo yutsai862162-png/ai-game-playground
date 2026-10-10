@@ -36,13 +36,18 @@ button:disabled{cursor:default}
   color:var(--paper);-webkit-text-stroke:7px var(--ink);paint-order:stroke fill;letter-spacing:.02em}
 #title .tag{margin:8px 20px 0;font-weight:800;font-size:14px;background:var(--sun);border:2px solid var(--line);border-radius:999px;padding:2px 12px;align-self:flex-start;transform:rotate(-2deg)}
 .sheet{margin-top:auto;background:var(--paper);border-top:3px solid var(--line);padding:12px 14px;display:flex;flex-direction:column;gap:9px}
-.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.mcard{text-align:left;background:#fff;border:3px solid var(--line);border-radius:16px;padding:9px 12px;box-shadow:0 4px 0 var(--line);display:flex;flex-direction:column;gap:1px;min-width:0}
+.two{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mcard{text-align:left;background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px 8px;box-shadow:0 4px 0 var(--line);display:flex;flex-direction:column;gap:1px;min-width:0}
 .mcard:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
-.mcard strong{font-family:var(--display);font-size:20px}
+.mcard strong{font-family:var(--display);font-size:clamp(16px,4.6vw,20px);white-space:nowrap}
 .mcard span{font-size:12.5px;color:var(--ink-soft);font-weight:500}
 .mcard em{font-style:normal;font-size:13px;color:var(--orange);font-weight:800}
-.mcard.a{background:#f1ebff}.mcard.b{background:#ffeef3}
+.mcard.a{background:#f1ebff}.mcard.b{background:#ffeef3}.mcard.c{background:#e6f5ec}
+#camp{pointer-events:none;justify-content:space-between}
+#camp>*{pointer-events:auto}
+.ctop{display:flex;flex-wrap:wrap;gap:6px;padding:10px}
+.csheet{max-height:47%;border-top:3px solid var(--line);display:flex;flex-direction:column}
+.csheet .row .btn{padding:6px 12px;font-size:14px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{background:var(--sun);border:3px solid var(--line);border-radius:14px;padding:7px 14px;font-weight:800;box-shadow:0 4px 0 var(--line);position:relative}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
@@ -146,8 +151,9 @@ button:disabled{cursor:default}
       <span class="tag">和小白襪一起，跳過障礙、忍住誘惑！</span>
       <div class="sheet" id="tsheet">
         <div class="two">
-          <button class="mcard a" id="tomap"><strong>開始冒險</strong><span>九個關卡，一關一關解鎖</span><em id="hflow"></em></button>
-          <button class="mcard b" id="toend"><strong>無盡模式</strong><span>三顆愛心，看妳能跑多遠</span><em id="hend"></em></button>
+          <button class="mcard a" id="tomap"><strong>開始冒險</strong><span>九關地圖</span><em id="hflow"></em></button>
+          <button class="mcard b" id="toend"><strong>無盡模式</strong><span>看能跑多遠</span><em id="hend"></em></button>
+          <button class="mcard c" id="tocamp"><strong>森林營地</strong><span>砍樹切肉賣錢</span><em id="hcamp"></em></button>
         </div>
         <div class="row">
           <button class="btn" id="toshop">衣櫃與能力</button>
@@ -197,6 +203,7 @@ button:disabled{cursor:default}
         <div class="info">
           <h2>衣櫃與能力</h2>
           <span class="chip">我的星星 ★ <b id="wallet1">0</b></span>
+          <span class="chip hi">金幣 <b id="wcoin">0</b></span>
           <span class="hint" id="wmsg">用路上撿到的星星換造型、練能力。</span>
           <button class="btn" data-home>好了</button>
         </div>
@@ -210,6 +217,20 @@ button:disabled{cursor:default}
       <div class="list" id="daily"></div>
       <h3 id="bcount">徽章蒐集冊</h3>
       <div class="badges" id="badges"></div>
+    </div>
+
+    <div class="layer" id="camp" hidden>
+      <div class="ctop">
+        <span class="chip">🪵 <b id="cwood">0</b></span><span class="chip">🍖 <b id="cmeat">0</b></span>
+        <span class="chip" id="cbagc">背包 <b id="cbag">0</b></span><span class="chip" id="cstac">體力 <b id="csta">0</b></span>
+        <span class="chip hi">金幣 <b id="ccoin">0</b></span>
+      </div>
+      <div class="csheet panel">
+        <div class="row"><button class="btn" id="csell">全部賣掉</button><button class="btn alt" id="ceat">烤肉吃</button><button class="btn alt" data-home>回首頁</button></div>
+        <span class="hint" id="cmsg">點樹砍木頭、點肉攤切肉。賣掉換金幣，交訂單換星星。</span>
+        <h3>訂單</h3><div class="list" id="corders"></div>
+        <h3>裝備</h3><div class="list" id="cequip"></div>
+      </div>
     </div>
 
     <div class="layer panel" id="result" hidden>
@@ -241,11 +262,15 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 
 /* ---------- data ---------- */
 const SHOP={
-  hair:{label:'頭飾',items:[{id:'none',name:'愛心髮夾',cost:0},{id:'bow',name:'蝴蝶結',cost:20,fx:'忍住少點 1 下'},{id:'cat',name:'貓耳朵',cost:40,fx:'二段跳更高'},{id:'crown',name:'皇冠',cost:80,fx:'星星收入 +20%'}]},
-  top:{label:'上衣',items:[{id:'lav',name:'薰衣草紫',cost:0,color:'#cdbdf2'},{id:'pink',name:'蜜桃粉',cost:15,color:'#ffb3c9'},{id:'mint',name:'薄荷綠',cost:15,color:'#a8e6d1'},{id:'lemon',name:'檸檬黃',cost:15,color:'#ffe58a'},{id:'sky',name:'天空藍',cost:15,color:'#a9d4ff'}]},
+  hair:{label:'頭飾',items:[{id:'none',name:'愛心髮夾',cost:0},{id:'bow',name:'蝴蝶結',cost:20,fx:'忍住少點 1 下'},{id:'cat',name:'貓耳朵',cost:40,fx:'二段跳更高'},{id:'crown',name:'皇冠',cost:80,fx:'星星收入 +20%'},
+    {id:'wreath',name:'花環',cost:35},{id:'bunny',name:'兔耳朵',cost:45},{id:'beret',name:'貝雷帽',cost:40},{id:'beanie',name:'毛線帽',cost:60,coin:true}]},
+  face:{label:'眼鏡',items:[{id:'none',name:'不戴',cost:0},{id:'round',name:'圓框眼鏡',cost:25},{id:'sun',name:'太陽眼鏡',cost:40},{id:'heart',name:'愛心墨鏡',cost:80,coin:true}]},
+  neck:{label:'脖子',items:[{id:'none',name:'不戴',cost:0},{id:'scarf',name:'紅圍巾',cost:25},{id:'pearl',name:'珍珠項鍊',cost:45},{id:'cape',name:'小披風',cost:120,coin:true}]},
+  back:{label:'背上',items:[{id:'none',name:'不背',cost:0},{id:'bag',name:'書包',cost:20},{id:'angel',name:'天使翅膀',cost:90},{id:'fly',name:'蝴蝶翅膀',cost:150,coin:true}]},
+  top:{label:'上衣',items:[{id:'lav',name:'薰衣草紫',cost:0,color:'#cdbdf2'},{id:'pink',name:'蜜桃粉',cost:15,color:'#ffb3c9'},{id:'mint',name:'薄荷綠',cost:15,color:'#a8e6d1'},{id:'lemon',name:'檸檬黃',cost:15,color:'#ffe58a'},{id:'sky',name:'天空藍',cost:15,color:'#a9d4ff'},{id:'white',name:'牛奶白',cost:20,color:'#f7f3ea'},{id:'coral',name:'珊瑚橘',cost:20,color:'#ffb08a'}]},
   bottom:{label:'下身',items:[{id:'shorts',name:'灰色短褲',cost:0},{id:'skirt',name:'百褶裙',cost:30},{id:'jeans',name:'牛仔褲',cost:30}]},
-  hand:{label:'手上拿的',items:[{id:'candy',name:'棉花糖棒',cost:0},{id:'none',name:'空手',cost:0},{id:'balloon',name:'氣球',cost:25},{id:'wand',name:'星星魔法棒',cost:50}]},
-  pet:{label:'小白襪的配件',items:[{id:'none',name:'不戴',cost:0},{id:'bell',name:'鈴鐺項圈',cost:20},{id:'tie',name:'小領結',cost:30},{id:'pcrown',name:'小皇冠',cost:60}]}
+  hand:{label:'手上拿的',items:[{id:'candy',name:'棉花糖棒',cost:0},{id:'none',name:'空手',cost:0},{id:'balloon',name:'氣球',cost:25},{id:'wand',name:'星星魔法棒',cost:50},{id:'bouquet',name:'花束',cost:35},{id:'umb',name:'小雨傘',cost:40},{id:'axe',name:'小斧頭',cost:50,coin:true}]},
+  pet:{label:'小白襪的配件',items:[{id:'none',name:'不戴',cost:0},{id:'bell',name:'鈴鐺項圈',cost:20},{id:'tie',name:'小領結',cost:30},{id:'pcrown',name:'小皇冠',cost:60},{id:'pscarf',name:'小圍巾',cost:25},{id:'phat',name:'小草帽',cost:70,coin:true}]}
 };
 const UPS=[
   {id:'jump',name:'彈跳力',d:'每級跳得更高一點',cost:[30,60,100]},
@@ -321,15 +346,20 @@ const BADGES=[
   {id:'e2500',ic:'🚀',name:'停不下來',d:'無盡模式 2500 公尺',t:function(){return S.endless>=2500;}},
   {id:'style',ic:'👗',name:'穿搭達人',d:'擁有 8 件造型',t:function(){return Object.keys(S.owned).length>=8;}},
   {id:'boss',ic:'🏆',name:'大魔王剋星',d:'通過補習班大魔王',t:function(){return (S.best.l9||0)>=2;}},
+  {id:'wood',ic:'🪓',name:'小小伐木工',d:'營地累計砍 300 個木頭',t:function(){return S.camp.tw>=300;}},
+  {id:'orders',ic:'📦',name:'使命必達',d:'營地完成 15 張訂單',t:function(){return S.camp.done>=15;}},
+  {id:'camp',ic:'🔥',name:'營地達人',d:'營火升到最高級',t:function(){return S.camp.eq.fire>=3;}},
   {id:'all',ic:'👑',name:'真正的小公主',d:'九關全部三朵花',t:function(){return LEVELS.every(function(l){return S.best[l.id]===3;});}}
 ];
 
 /* ---------- save ---------- */
-let S={stars:0,owned:{},fit:{hair:'none',top:'lav',bottom:'shorts',hand:'candy',pet:'none'},best:{},sound:true,
+let S={stars:0,owned:{},fit:{hair:'none',face:'none',neck:'none',back:'none',top:'lav',bottom:'shorts',hand:'candy',pet:'none'},best:{},sound:true,
+  camp:{wood:0,meat:0,coin:0,sta:40,staT:0,seen:0,done:0,tw:0,orders:[],eq:{axe:0,knife:0,bag:0,fire:0,cat:0}},
   up:{jump:0,will:0,guard:0,magnet:0},badges:{},stats:{clears:0,resist:0,helped:0,clean:0,starsTotal:0},endless:0,daily:null};
 try{const r=JSON.parse(localStorage.getItem('princess-walk')||'null');
   if(r&&r.fit){['stars','owned','sound','endless','daily','badges'].forEach(function(k){if(r[k]!==undefined)S[k]=r[k];});
     Object.assign(S.fit,r.fit);Object.assign(S.up,r.up||{});Object.assign(S.stats,r.stats||{});
+    if(r.camp){const eq=Object.assign(S.camp.eq,r.camp.eq||{});Object.assign(S.camp,r.camp);S.camp.eq=eq;}
     LEVELS.forEach(function(l){if(r.best&&r.best[l.id])S.best[l.id]=r.best[l.id];});}
 }catch(e){}
 function save(){try{localStorage.setItem('princess-walk',JSON.stringify(S));}catch(e){}}
@@ -385,6 +415,10 @@ function drawGirl(c,x,y,s,fit,t,st){
   const air=st.air,run=st.run&&!air,ph=t*13;
   const sw=run?Math.sin(ph):0,bob=run?-Math.abs(Math.cos(ph))*2.5:0;
   c.save();c.translate(x,y);c.scale(s,s);c.lineCap='round';c.lineJoin='round';
+  if(fit.back==='angel'){c.fillStyle='#fff';c.strokeStyle='#d8d8ea';c.lineWidth=1.5;[-1,1].forEach(function(d){c.beginPath();c.ellipse(d*36,-64+bob,21,11,d*-0.5,0,7);c.fill();c.stroke();c.beginPath();c.ellipse(d*33,-48+bob,15,8,d*-0.2,0,7);c.fill();c.stroke();});}
+  else if(fit.back==='fly'){[-1,1].forEach(function(d){c.fillStyle='#ff9ec7';c.beginPath();c.ellipse(d*37,-68+bob,19,15,d*-0.4,0,7);c.fill();c.fillStyle='#b9a4ea';c.beginPath();c.ellipse(d*33,-44+bob,13,10,d*0.3,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(d*40,-70+bob,4,0,7);c.fill();});}
+  else if(fit.back==='bag'){c.fillStyle='#e0607e';rr(c,-21,-62+bob,42,33,9);c.fill();}
+  if(fit.neck==='cape'){c.fillStyle='#d9486a';c.beginPath();c.moveTo(-16,-60+bob);c.lineTo(16,-60+bob);c.lineTo(26,-14+bob);c.lineTo(-26,-14+bob);c.closePath();c.fill();}
   c.fillStyle=HAIR;rr(c,-30,-117+bob,60,86,22);c.fill();
   const jeans=fit.bottom==='jeans';
   [[-6,1],[6,-1]].forEach(function(p){
@@ -403,6 +437,7 @@ function drawGirl(c,x,y,s,fit,t,st){
   c.beginPath();c.arc(-14,-55+bob,6,0,7);c.arc(14,-55+bob,6,0,7);c.fill();
   c.fillStyle='rgba(255,255,255,.8)';rr(c,-8,-50+bob,16,4,2);c.fill();
   c.fillStyle='rgba(255,143,179,.9)';rr(c,-5,-44+bob,10,3,1.5);c.fill();
+  if(fit.back==='bag'){c.strokeStyle='#e0607e';c.lineWidth=4;line(c,-9,-60+bob,-9,-36+bob);line(c,9,-60+bob,9,-36+bob);}
   const hx=28,hy=-44+bob;
   if(fit.hand==='candy'){
     c.strokeStyle='#fff';c.lineWidth=5;line(c,hx-3,hy+6,hx+8,hy-26);
@@ -412,6 +447,16 @@ function drawGirl(c,x,y,s,fit,t,st){
   }else if(fit.hand==='wand'){
     c.strokeStyle='#c9a4ff';c.lineWidth=3;line(c,hx-2,hy+5,hx+9,hy-26);
     c.fillStyle='#ffcf4a';starPath(c,hx+10,hy-33,10,t*2);c.fill();
+  }else if(fit.hand==='bouquet'){
+    c.strokeStyle='#5fae7a';c.lineWidth=3;line(c,hx-1,hy+6,hx+6,hy-14);
+    [[2,-20,'#ff8fb3'],[11,-18,'#ffd35c'],[7,-28,'#fff']].forEach(function(q){c.fillStyle=q[2];c.beginPath();c.arc(hx+q[0],hy+q[1],5.5,0,7);c.fill();c.fillStyle='#ff8a3d';c.beginPath();c.arc(hx+q[0],hy+q[1],1.8,0,7);c.fill();});
+  }else if(fit.hand==='axe'){
+    c.strokeStyle='#8a6a48';c.lineWidth=4;line(c,hx-3,hy+8,hx+8,hy-24);
+    c.fillStyle='#b8c0cc';c.beginPath();c.moveTo(hx+7,hy-31);c.lineTo(hx+21,hy-28);c.lineTo(hx+19,hy-14);c.lineTo(hx+5,hy-18);c.closePath();c.fill();
+  }else if(fit.hand==='umb'){
+    c.strokeStyle='#7a6a8c';c.lineWidth=2.5;line(c,hx,hy+4,hx+4,hy-54);
+    c.fillStyle='#ff8fb3';c.beginPath();c.arc(hx+4,hy-54,25,Math.PI,0);c.closePath();c.fill();
+    c.fillStyle='#ffd1e0';c.beginPath();c.arc(hx+4,hy-54,9,Math.PI,0);c.closePath();c.fill();
   }else if(fit.hand==='balloon'){
     c.strokeStyle='#7a6a8c';c.lineWidth=1.2;line(c,hx,hy,hx+6,hy-48);
     c.fillStyle='#ff6f8f';c.beginPath();c.ellipse(hx+7,hy-62,12,15,0,0,7);c.fill();
@@ -431,6 +476,9 @@ function drawGirl(c,x,y,s,fit,t,st){
     c.lineWidth=1.2;line(c,-11.5,cy+5,-13.6,cy+3.4);line(c,11.5,cy+5,13.6,cy+3.4);
     c.fillStyle='#fff';[-8.5,8.5].forEach(function(ex){c.beginPath();c.arc(ex+1.3,cy+6.1,1.5,0,7);c.fill();c.beginPath();c.arc(ex-1.2,cy+10.2,0.8,0,7);c.fill();});}
   c.fillStyle='rgba(255,120,150,.5)';[-14,14].forEach(function(ex){c.beginPath();c.ellipse(ex,cy+14,4.6,2.8,0,0,7);c.fill();});
+  if(fit.face==='round'){c.strokeStyle='#5a4a6a';c.lineWidth=1.6;c.beginPath();c.arc(-8.5,cy+8,6.4,0,7);c.stroke();c.beginPath();c.arc(8.5,cy+8,6.4,0,7);c.stroke();line(c,-2.1,cy+8,2.1,cy+8);}
+  else if(fit.face==='sun'){c.fillStyle='#2a2238';rr(c,-15.5,cy+3.2,12.6,9.6,3.5);c.fill();rr(c,2.9,cy+3.2,12.6,9.6,3.5);c.fill();c.strokeStyle='#2a2238';c.lineWidth=1.6;line(c,-3,cy+6,3,cy+6);}
+  else if(fit.face==='heart'){c.fillStyle='#ff5f8f';[-8.5,8.5].forEach(function(ex){c.beginPath();c.arc(ex-3,cy+6,3.6,0,7);c.arc(ex+3,cy+6,3.6,0,7);c.fill();c.beginPath();c.moveTo(ex-6.4,cy+7.5);c.lineTo(ex+6.4,cy+7.5);c.lineTo(ex,cy+14);c.closePath();c.fill();});c.strokeStyle='#ff5f8f';c.lineWidth=1.5;line(c,-2,cy+7,2,cy+7);}
   if(f==='ouch'){c.strokeStyle='#c2506a';c.lineWidth=1.8;c.beginPath();c.arc(0,cy+17,3,Math.PI,0);c.stroke();}
   else{c.fillStyle='#e0607e';c.beginPath();c.arc(0,cy+13.5,3.4,0,Math.PI);c.closePath();c.fill();}
   if(fit.hair==='none'){c.fillStyle='#ff8fb3';c.beginPath();c.arc(13.5,cy-3,2.6,0,7);c.arc(17.5,cy-3,2.6,0,7);c.fill();c.beginPath();c.moveTo(11,cy-2);c.lineTo(20,cy-2);c.lineTo(15.5,cy+3.5);c.closePath();c.fill();}
@@ -438,9 +486,18 @@ function drawGirl(c,x,y,s,fit,t,st){
     c.beginPath();c.moveTo(13,cy-19);c.lineTo(23,cy-27);c.lineTo(23,cy-11);c.closePath();c.fill();c.fillStyle='#ffd1e0';c.beginPath();c.arc(13,cy-19,3.2,0,7);c.fill();}
   else if(fit.hair==='cat'){c.fillStyle=HAIR;[-1,1].forEach(function(d){c.beginPath();c.moveTo(d*18,cy-12);c.lineTo(d*15,cy-34);c.lineTo(d*5,cy-23);c.closePath();c.fill();});
     c.fillStyle='#ffb3c9';[-1,1].forEach(function(d){c.beginPath();c.moveTo(d*15,cy-18);c.lineTo(d*14,cy-28);c.lineTo(d*9,cy-22);c.closePath();c.fill();});}
+  else if(fit.hair==='wreath'){for(let i=0;i<7;i++){const a=Math.PI*(1.1+i*0.133);c.fillStyle='#6fbf85';c.beginPath();c.arc(Math.cos(a+0.06)*22,cy-2+Math.sin(a+0.06)*22,3,0,7);c.fill();
+      c.fillStyle=['#ff8fb3','#ffd35c','#fff','#b9a4ea'][i%4];c.beginPath();c.arc(Math.cos(a)*22.5,cy-2+Math.sin(a)*22.5,4.2,0,7);c.fill();}}
+  else if(fit.hair==='bunny'){[-1,1].forEach(function(d){c.fillStyle='#fff';c.beginPath();c.ellipse(d*10,cy-37,5.8,15,d*0.16,0,7);c.fill();c.fillStyle='#ffc2d6';c.beginPath();c.ellipse(d*10,cy-36,2.8,10,d*0.16,0,7);c.fill();});}
+  else if(fit.hair==='beret'){c.fillStyle='#d9486a';c.beginPath();c.ellipse(3,cy-21,24,10,-0.15,0,7);c.fill();c.fillRect(2,cy-34,2.6,6);}
+  else if(fit.hair==='beanie'){c.fillStyle='#7fd3bb';c.beginPath();c.arc(0,cy-5,24,Math.PI,0);c.closePath();c.fill();c.fillStyle='#fff';rr(c,-24.5,cy-10,49,8,4);c.fill();c.beginPath();c.arc(0,cy-30,6,0,7);c.fill();}
   else if(fit.hair==='crown'){c.fillStyle='#ffcf4a';c.beginPath();c.moveTo(-12,cy-21);c.lineTo(-13,cy-36);c.lineTo(-6,cy-29);c.lineTo(0,cy-39);c.lineTo(6,cy-29);c.lineTo(13,cy-36);c.lineTo(12,cy-21);c.closePath();c.fill();
     c.fillStyle='#ff6f9c';c.beginPath();c.arc(0,cy-27,2.4,0,7);c.fill();}
-  c.restore();c.restore();
+  c.restore();
+  if(fit.neck==='scarf'){c.fillStyle='#e8504f';rr(c,-14,-60+bob,28,9,4.5);c.fill();rr(c,5,-55+bob,8,18,3);c.fill();}
+  else if(fit.neck==='pearl'){c.fillStyle='#fff';c.strokeStyle='#c9c2d6';c.lineWidth=0.8;for(let i=-3;i<=3;i++){c.beginPath();c.arc(i*3.8,-58+bob+(3-Math.abs(i))*1.6,2.1,0,7);c.fill();c.stroke();}}
+  else if(fit.neck==='cape'){c.fillStyle='#ffcf4a';c.beginPath();c.arc(0,-57+bob,3.8,0,7);c.fill();}
+  c.restore();
 }
 /* 小白襪: a tabby with white socks */
 function drawCat(c,x,y,s,t,run,acc){
@@ -461,6 +518,8 @@ function drawCat(c,x,y,s,t,run,acc){
   c.fillStyle='#ff8fb3';c.beginPath();c.arc(17.5,-18.5,1.3,0,7);c.fill();
   if(acc==='bell'){c.strokeStyle='#e0607e';c.lineWidth=2.5;line(c,8,-14,13,-11);c.fillStyle='#ffcf4a';c.beginPath();c.arc(11,-10,3,0,7);c.fill();}
   else if(acc==='tie'){c.fillStyle='#7f8fe0';c.beginPath();c.moveTo(11,-11);c.lineTo(5,-15);c.lineTo(5,-7);c.closePath();c.fill();c.beginPath();c.moveTo(11,-11);c.lineTo(17,-15);c.lineTo(17,-7);c.closePath();c.fill();}
+  else if(acc==='pscarf'){c.fillStyle='#e8504f';rr(c,5,-15,11,5,2.5);c.fill();c.fillRect(8,-11,4,7);}
+  else if(acc==='phat'){c.fillStyle='#f2d28a';c.beginPath();c.ellipse(15,-30,11,3.6,0,0,7);c.fill();c.beginPath();c.arc(15,-30,6.5,Math.PI,0);c.closePath();c.fill();c.fillStyle='#e0607e';c.fillRect(8.5,-33,13,2.4);}
   else if(acc==='pcrown'){c.fillStyle='#ffcf4a';c.beginPath();c.moveTo(10,-29);c.lineTo(9,-38);c.lineTo(13,-34);c.lineTo(15,-40);c.lineTo(17,-34);c.lineTo(21,-38);c.lineTo(20,-29);c.closePath();c.fill();}
   c.restore();
 }
@@ -700,7 +759,7 @@ function drawWorld(){
 }
 
 /* ---------- flow ---------- */
-const layers=['title','map','dialog','tap','quiz','shop','book','result'];
+const layers=['title','map','dialog','tap','quiz','shop','book','camp','result'];
 function show(id){layers.forEach(function(l){$(l).hidden=l!==id;});}
 function setFace(f,d){g.face=f;g.faceT=d||1.2;}
 function pop(x,h,txt,col,life){g.fx.push({x:x,h:h,life:life||0.8,txt:txt,col:col||'#c2506a'});}
@@ -924,6 +983,7 @@ function hitOb(px,e){
 function bank(ok,rate){
   let earn=g.stars+(ok?(rate===3?20:10):0);
   if(S.fit.hair==='crown')earn=Math.round(earn*1.2);
+  S.camp.sta=staMax();S.camp.staT=Date.now();
   S.stars+=earn;S.stats.starsTotal+=g.stars;S.stats.resist+=g.resisted;S.stats.helped+=g.helped;
   dcount('resist',g.resisted);dcount('stars',g.stars);dcount('help',g.helped);dcount('runs',1);
   return earn;
@@ -996,7 +1056,7 @@ function jump(){
   const k=1+0.04*S.up.jump;
   g.vy=(g.jumps===0?640:(S.fit.hair==='cat'?625:560))*k;g.jumps++;beep(g.jumps===1?520:700,0.08);
 }
-stage.addEventListener('pointerdown',function(e){if(g.mode==='run'){e.preventDefault();jump();}});
+stage.addEventListener('pointerdown',function(e){if(g.mode==='run'){e.preventDefault();jump();}else if(g.mode==='camp'&&(e.target===cv||e.target===$('camp')))campTap(e);});
 addEventListener('keydown',function(e){
   if(e.code!=='Space'&&e.code!=='ArrowUp'&&e.code!=='Enter')return;
   if(g.mode==='run'){e.preventDefault();jump();}
@@ -1074,17 +1134,192 @@ function frame(ts){
   }
   for(const p of g.fx){p.life-=dt;p.h+=40*dt;}
   if(g.fx.length)g.fx=g.fx.filter(function(p){return p.life>0;});
-  drawWorld();
+  if(g.mode==='camp'){campTick(dt);drawCamp();}else drawWorld();
   requestAnimationFrame(frame);
 }
 
+/* ---------- forest camp: gather, sell, upgrade ---------- */
+const EQ=[
+  {id:'axe',name:'斧頭',d:'每砍一下多 1 個木頭',cost:[15,40,90,180]},
+  {id:'knife',name:'菜刀',d:'每切一下多 1 塊肉',cost:[15,40,90,180]},
+  {id:'bag',name:'背包',d:'多裝 10 個東西',cost:[20,50,100,180,300]},
+  {id:'fire',name:'營火',d:'體力上限 +10、恢復更快，還會多一棵樹或一個肉攤',cost:[60,150,300]},
+  {id:'cat',name:'小白襪幫手',d:'小白襪自己幫忙撿，不花體力',cost:[50,120,250]}
+];
+const CATRATE=[0,6,4,2.5];
+const camp={nodes:[],gx:180,tx:180,fx:[],catT:0,saveT:0,chop:0};
+function staMax(){return 40+10*S.camp.eq.fire;}
+function bagCap(){return 20+10*S.camp.eq.bag;}
+function held(){return S.camp.wood+S.camp.meat;}
+function staTick(){
+  const c=S.camp,max=staMax(),per=[5,4,3,2.5][c.eq.fire]*1000,now=Date.now();
+  if(c.sta>=max||!c.staT){c.staT=now;return;}
+  const n=Math.floor((now-c.staT)/per);if(n>0){c.sta=Math.min(max,c.sta+n);c.staT+=n*per;}
+}
+function newOrder(){
+  const c=S.camp,k=1+0.3*(c.eq.axe+c.eq.knife)+Math.min(1,c.done*0.05),r=rnd();
+  let w=r<0.2?0:Math.round(ri(6,14)*k),m=r>0.8?0:Math.round(ri(3,8)*k);
+  const cap=bagCap();if(w+m>cap){const f=cap/(w+m);w=Math.floor(w*f);m=Math.floor(m*f);}
+  if(w+m<=0)w=5;
+  const v=w+2*m;
+  return {who:['王奶奶','陳伯伯','林阿姨','雜貨店老闆娘','李叔叔','警衛叔叔'][ri(0,5)],w:w,m:m,star:Math.round(v/2.5)+4,coin:Math.round(v*0.3)+2};
+}
+function campNodes(){
+  const f=S.camp.eq.fire,n=[{t:'tree',fx:0.1},{t:'tree',fx:0.3},{t:'meat',fx:0.72}];
+  if(f>=1)n.push({t:'tree',fx:0.92});
+  if(f>=2)n.push({t:'meat',fx:0.52});
+  n.forEach(function(o){o.max=o.t==='tree'?5:4;o.hp=o.max;o.down=0;o.shake=0;});
+  camp.nodes=n;
+}
+function cmsg(t){$('cmsg').textContent=t;}
+function cpop(x,y,txt,col){camp.fx.push({x:x,y:y,txt:txt,col:col||'#3b2a4d',life:0.9});}
+function campUI(){
+  const c=S.camp;
+  $('cwood').textContent=c.wood;$('cmeat').textContent=c.meat;$('ccoin').textContent=c.coin;
+  $('cbag').textContent=held()+' / '+bagCap();$('cbagc').classList.toggle('warn',held()>=bagCap());
+  $('csta').textContent=c.sta+' / '+staMax();$('cstac').classList.toggle('warn',c.sta<=0);
+  const ro=$('corders');ro.innerHTML='';
+  c.orders.forEach(function(o,i){
+    const row=document.createElement('div');row.className='line';
+    row.innerHTML='<div class="tx"><b></b><span></span></div>';
+    row.querySelector('b').textContent=o.who+'要 '+(o.w?'🪵 '+o.w+' ':'')+(o.m?'🍖 '+o.m:'');
+    row.querySelector('span').textContent='報酬 ★ '+o.star+'、金幣 '+o.coin;
+    const b=document.createElement('button');b.className='btn';b.id='ord-'+i;b.textContent='交貨';
+    b.disabled=c.wood<o.w||c.meat<o.m;
+    b.addEventListener('click',function(){
+      c.wood-=o.w;c.meat-=o.m;S.stars+=o.star;c.coin+=o.coin;c.done++;c.orders[i]=newOrder();
+      beep(988,0.12,'triangle');setTimeout(function(){beep(1319,0.2,'triangle');},110);
+      cmsg(o.who+'：「謝謝妳！」拿到 ★ '+o.star+'、金幣 '+o.coin+'。');newBadges();save();campUI();
+    });
+    row.appendChild(b);ro.appendChild(row);
+  });
+  const re=$('cequip');re.innerHTML='';
+  EQ.forEach(function(u){
+    const lvl=c.eq[u.id],max=u.cost.length,row=document.createElement('div');row.className='line';
+    row.innerHTML='<div class="tx"><b></b><span></span></div><span class="pips">'+'●'.repeat(lvl)+'○'.repeat(max-lvl)+'</span>';
+    row.querySelector('b').textContent=u.name;row.querySelector('.tx span').textContent=u.d;
+    const b=document.createElement('button');b.className='btn';b.id='eq-'+u.id;
+    if(lvl>=max){b.textContent='已滿級';b.disabled=true;}
+    else{b.textContent='金幣 '+u.cost[lvl];
+      b.addEventListener('click',function(){
+        if(c.coin<u.cost[lvl]){cmsg('金幣還差 '+(u.cost[lvl]-c.coin)+' 個，多賣一點東西吧！');b.classList.remove('no-go');void b.offsetWidth;b.classList.add('no-go');beep(180,0.15,'sawtooth');return;}
+        c.coin-=u.cost[lvl];c.eq[u.id]++;beep(988,0.15,'triangle');cmsg('「'+u.name+'」升級了！');
+        if(u.id==='fire'){const old=camp.nodes;campNodes();old.forEach(function(o,j){if(camp.nodes[j]){camp.nodes[j].hp=o.hp;camp.nodes[j].down=o.down;}});}
+        newBadges();save();campUI();
+      });}
+    row.appendChild(b);re.appendChild(row);
+  });
+}
+function openCamp(){
+  idle('camp','camp');
+  const c=S.camp,now=Date.now();
+  if(!c.staT){c.staT=now;c.sta=staMax();}
+  staTick();
+  while(c.orders.length<3)c.orders.push(newOrder());
+  campNodes();camp.gx=camp.tx=W*0.5;camp.fx=[];
+  cmsg('點樹砍木頭、點肉攤切肉。賣掉換金幣，交訂單換星星。');
+  if(c.eq.cat&&c.seen){
+    let n=Math.floor(Math.min(1200,(now-c.seen)/1000)/CATRATE[c.eq.cat]);n=Math.max(0,Math.min(n,bagCap()-held()));
+    if(n>0){const w=Math.round(n*0.6);c.wood+=w;c.meat+=n-w;c.tw+=w;cmsg('小白襪趁妳不在，幫忙撿了 '+n+' 個東西。');}
+  }
+  c.seen=now;save();campUI();
+}
+function campTap(e){
+  const r=stage.getBoundingClientRect(),lx=(e.clientX-r.left)/scale,ly=(e.clientY-r.top)/scale,cg=Hl*0.38;
+  if(ly<cg-140||ly>cg+28)return;
+  let best=null,bd=36;
+  camp.nodes.forEach(function(n){const d=Math.abs(lx-n.fx*W);if(d<bd){bd=d;best=n;}});
+  if(best){e.preventDefault();chop(best);}
+}
+function chop(n){
+  const c=S.camp,x=n.fx*W,cg=Hl*0.38;
+  camp.tx=Math.max(26,x-44);
+  if(n.down>0){cmsg(n.t==='tree'?'這棵樹還在長，等一下。':'肉攤補貨中，等一下。');return;}
+  if(c.sta<=0){cmsg('沒體力了。烤肉吃可以補體力，去跑一關也會補滿。');cpop(x,cg-120,'沒體力','#c2506a');beep(180,0.12,'sawtooth');return;}
+  if(held()>=bagCap()){cmsg('背包滿了！先賣掉或交訂單。');cpop(x,cg-120,'背包滿了','#c2506a');beep(180,0.12,'sawtooth');return;}
+  const tree=n.t==='tree',amt=Math.min(1+(tree?c.eq.axe:c.eq.knife),bagCap()-held());
+  c.sta--;if(tree){c.wood+=amt;c.tw+=amt;}else c.meat+=amt;
+  n.hp--;n.shake=0.18;camp.chop=0.18;
+  cpop(x,cg-120,(tree?'🪵 +':'🍖 +')+amt);beep(tree?240:330,0.06);
+  if(n.hp<=0){n.down=tree?5:4;beep(140,0.18,'sawtooth');}
+  campUI();
+}
+$('csell').addEventListener('click',function(){
+  const c=S.camp,gain=c.wood+c.meat*2;
+  if(!gain){cmsg('背包是空的，先去砍樹切肉。');return;}
+  c.coin+=gain;cmsg('賣掉 🪵 '+c.wood+'、🍖 '+c.meat+'，賺到金幣 '+gain+'。');c.wood=0;c.meat=0;
+  beep(880,0.1,'triangle');setTimeout(function(){beep(1175,0.15,'triangle');},90);save();campUI();
+});
+$('ceat').addEventListener('click',function(){
+  const c=S.camp;
+  if(c.meat<3){cmsg('烤肉要 3 塊肉，可以補 12 點體力。');return;}
+  if(c.sta>=staMax()){cmsg('體力是滿的，先不用吃。');return;}
+  c.meat-=3;c.sta=Math.min(staMax(),c.sta+12);cmsg('在營火上烤肉吃，體力 +12！');beep(660,0.12,'triangle');save();campUI();
+});
+function campTick(dt){
+  const c=S.camp,before=c.sta;
+  staTick();if(c.sta!==before)campUI();
+  camp.chop=Math.max(0,camp.chop-dt);
+  camp.nodes.forEach(function(n){n.shake=Math.max(0,n.shake-dt);if(n.down>0){n.down-=dt;if(n.down<=0){n.down=0;n.hp=n.max;}}});
+  camp.gx+=(camp.tx-camp.gx)*Math.min(1,dt*9);
+  if(c.eq.cat){camp.catT+=dt;if(camp.catT>=CATRATE[c.eq.cat]){camp.catT=0;
+    if(held()<bagCap()){const tree=rnd()<0.6;if(tree){c.wood++;c.tw++;}else c.meat++;cpop(W*0.5-44,Hl*0.38+8,tree?'喵 🪵 +1':'喵 🍖 +1','#8a6a48');campUI();}}}
+  for(const p of camp.fx){p.life-=dt;p.y-=34*dt;}
+  if(camp.fx.length)camp.fx=camp.fx.filter(function(p){return p.life>0;});
+  camp.saveT+=dt;if(camp.saveT>5){camp.saveT=0;c.seen=Date.now();save();}
+}
+function drawCamp(){
+  const c=ctx,cg=Hl*0.38,t=g.t;
+  c.setTransform(dpr*scale,0,0,dpr*scale,0,0);
+  const sk=c.createLinearGradient(0,0,0,cg);sk.addColorStop(0,'#bfe1f4');sk.addColorStop(1,'#f1fafe');
+  c.fillStyle=sk;c.fillRect(0,0,W,Hl);
+  c.fillStyle='#e3f1f9';c.beginPath();c.ellipse(W*0.25,cg-10,W*0.5,70,0,0,7);c.ellipse(W*0.85,cg-6,W*0.45,54,0,0,7);c.fill();
+  for(let i=0;i<9;i++){const x=hash(i+3)*W,h=30+hash(i+20)*26,y=cg-34+hash(i+7)*14;
+    c.fillStyle='#8fbfa6';c.beginPath();c.moveTo(x,y-h);c.lineTo(x+h*0.34,y);c.lineTo(x-h*0.34,y);c.closePath();c.fill();}
+  c.fillStyle='#f6fbfe';c.fillRect(0,cg-22,W,Hl);
+  c.fillStyle='rgba(120,160,190,.16)';c.beginPath();c.ellipse(W*0.5,cg+52,W*0.34,20,0,0,7);c.fill();
+  c.textAlign='center';c.textBaseline='middle';
+  camp.nodes.forEach(function(n){
+    const x=n.fx*W+(n.shake>0?Math.sin(t*70)*3:0);
+    if(n.t==='tree'){
+      if(n.down>0){c.fillStyle='#8a6a48';rr(c,x-9,cg-12,18,12,3);c.fill();c.fillStyle='#c79a62';c.beginPath();c.ellipse(x,cg-12,9,3.5,0,0,7);c.fill();
+        c.fillStyle='#7a6a8c';c.font='800 12px sans-serif';c.fillText(Math.ceil(n.down)+' 秒',x,cg-28);return;}
+      c.fillStyle='#8a6a48';c.fillRect(x-6,cg-30,12,30);
+      [[36,-28,-72],[29,-54,-94],[21,-78,-114]].forEach(function(q){c.fillStyle='#3f9a72';c.beginPath();c.moveTo(x,cg+q[2]);c.lineTo(x+q[0]/2,cg+q[1]);c.lineTo(x-q[0]/2,cg+q[1]);c.closePath();c.fill();
+        c.fillStyle='#fff';c.beginPath();c.moveTo(x,cg+q[2]);c.lineTo(x+q[0]*0.2,cg+q[2]+14);c.lineTo(x,cg+q[2]+10);c.lineTo(x-q[0]*0.2,cg+q[2]+14);c.closePath();c.fill();});
+    }else{
+      c.fillStyle='#8a6a48';c.fillRect(x-24,cg-22,5,22);c.fillRect(x+19,cg-22,5,22);
+      c.fillStyle='#c79a62';rr(c,x-30,cg-30,60,9,3);c.fill();
+      if(n.down>0){c.fillStyle='#7a6a8c';c.font='800 12px sans-serif';c.fillText('補貨 '+Math.ceil(n.down)+' 秒',x,cg-44);return;}
+      c.font=(26+n.hp*3)+'px sans-serif';c.fillStyle='#3b2a4d';c.fillText('🍖',x,cg-50);
+    }
+    c.fillStyle='rgba(59,42,77,.25)';rr(c,x-16,cg-132,32,5,2.5);c.fill();
+    c.fillStyle=n.t==='tree'?'#5fbf8a':'#ff8fb3';rr(c,x-16,cg-132,32*n.hp/n.max,5,2.5);c.fill();
+  });
+  const fx=W*0.5,fy=cg+50,fl=S.camp.eq.fire;
+  c.fillStyle='rgba(255,170,60,.18)';c.beginPath();c.arc(fx,fy-12,34+fl*5+Math.sin(t*7)*3,0,7);c.fill();
+  c.strokeStyle='#7a5a3c';c.lineWidth=6;c.lineCap='round';line(c,fx-16,fy,fx+16,fy-7);line(c,fx-16,fy-7,fx+16,fy);
+  const fh=22+fl*5+Math.sin(t*11)*3;
+  c.fillStyle='#ff8a3d';c.beginPath();c.moveTo(fx-11,fy-6);c.quadraticCurveTo(fx-14,fy-fh*0.6,fx+Math.sin(t*9)*3,fy-fh-6);c.quadraticCurveTo(fx+14,fy-fh*0.6,fx+11,fy-6);c.closePath();c.fill();
+  c.fillStyle='#ffd35c';c.beginPath();c.moveTo(fx-6,fy-6);c.quadraticCurveTo(fx-7,fy-fh*0.4,fx,fy-fh*0.7);c.quadraticCurveTo(fx+7,fy-fh*0.4,fx+6,fy-6);c.closePath();c.fill();
+  drawCat(c,fx-50,fy+6,1,t,false,S.fit.pet);
+  const moving=Math.abs(camp.tx-camp.gx)>3;
+  c.fillStyle='rgba(59,42,77,.14)';c.beginPath();c.ellipse(camp.gx,cg+9,16,4,0,0,7);c.fill();
+  c.save();if(camp.chop>0){c.translate(camp.gx,cg+6);c.rotate(0.12);c.translate(-camp.gx,-cg-6);}
+  drawGirl(c,camp.gx,cg+6,0.78,S.fit,t,{run:moving,air:false,face:'happy'});c.restore();
+  c.fillStyle='rgba(255,255,255,.9)';
+  for(let i=0;i<22;i++){const x=(hash(i+60)*W+Math.sin(t+i)*10)%W,y=(hash(i+90)*Hl+t*(18+hash(i)*22))%(cg+60);c.beginPath();c.arc(x,y,1.6,0,7);c.fill();}
+  for(const p of camp.fx){c.globalAlpha=Math.max(0,Math.min(1,p.life*2));c.fillStyle=p.col;c.font='800 15px sans-serif';c.fillText(p.txt,p.x,p.y);c.globalAlpha=1;}
+}
+
 /* ---------- menus ---------- */
-function wallets(){['wallet0','wallet1','wallet2'].forEach(function(i){$(i).textContent=S.stars;});}
+function wallets(){['wallet0','wallet1','wallet2'].forEach(function(i){$(i).textContent=S.stars;});$('wcoin').textContent=S.camp.coin;}
 function idle(mode,layer){g.mode=mode;g.lv=null;g.py=0;g.ph=[0];g.face='happy';g.fx=[];g.boost=0;g.shield=0;g.inv=0;$('hud').hidden=true;show(layer);wallets();requestAnimationFrame(resize);}
 function home(){
   idle('title','title');
-  $('hflow').textContent='小花 ✿ '+flowers()+' / 27';
-  $('hend').textContent=S.endless?'最遠 '+S.endless+' 公尺':'還沒挑戰過';
+  $('hflow').textContent='✿ '+flowers()+' / 27';
+  $('hend').textContent=S.endless?S.endless+' 公尺':'未挑戰';
+  $('hcamp').textContent='金幣 '+S.camp.coin;
   $('snd').textContent='聲音 '+(S.sound?'開':'關');$('snd').setAttribute('aria-pressed',S.sound);
   $('tobook').classList.toggle('dot',claimable());
 }
@@ -1135,13 +1370,14 @@ function openShop(){
       const own=owns(c,it),on=S.fit[c]===it.id;
       const b=document.createElement('button');b.className='item'+(on?' on':'')+(own?'':' lock');b.id='it-'+c+'-'+it.id;
       const nm=document.createElement('span');nm.textContent=it.name;
-      const sm=document.createElement('small');sm.textContent=(on?'穿著中':own?'已擁有':'★ '+it.cost)+(it.fx?'・'+it.fx:'');
+      const sm=document.createElement('small');sm.textContent=(on?'穿著中':own?'已擁有':(it.coin?'金幣 ':'★ ')+it.cost)+(it.fx?'・'+it.fx:'');
       b.appendChild(nm);b.appendChild(sm);
       b.addEventListener('click',function(){
         let msg='換上「'+it.name+'」。';
         if(!owns(c,it)){
-          if(S.stars<it.cost){nope(b,'星星還差 '+(it.cost-S.stars)+' 顆，再去跑一趟吧！');return;}
-          S.stars-=it.cost;S.owned[c+':'+it.id]=1;msg='換到「'+it.name+'」了！';beep(988,0.15,'triangle');
+          if(it.coin){if(S.camp.coin<it.cost){nope(b,'金幣還差 '+(it.cost-S.camp.coin)+' 個，去森林營地賺吧！');return;}S.camp.coin-=it.cost;}
+          else{if(S.stars<it.cost){nope(b,'星星還差 '+(it.cost-S.stars)+' 顆，再去跑一趟吧！');return;}S.stars-=it.cost;}
+          S.owned[c+':'+it.id]=1;msg='換到「'+it.name+'」了！';beep(988,0.15,'triangle');
         }
         S.fit[c]=it.id;newBadges();save();openShop();$('wmsg').textContent=msg;
       });
@@ -1176,6 +1412,7 @@ function openBook(){
 }
 $('tomap').addEventListener('click',openMap);
 $('toend').addEventListener('click',startEndless);
+$('tocamp').addEventListener('click',openCamp);
 $('toshop').addEventListener('click',openShop);
 $('tobook').addEventListener('click',openBook);
 $('snd').addEventListener('click',function(){S.sound=!S.sound;save();home();beep(700,0.08);});
