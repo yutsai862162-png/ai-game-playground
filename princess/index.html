@@ -270,7 +270,7 @@ const SHOP={
   hair:{label:'頭飾',items:[{id:'none',name:'愛心髮夾',cost:0},{id:'bow',name:'蝴蝶結',cost:20,fx:'忍住少點 1 下'},{id:'cat',name:'貓耳朵',cost:40,fx:'二段跳更高'},{id:'crown',name:'皇冠',cost:80,fx:'星星收入 +20%'},
     {id:'wreath',name:'花環',cost:35},{id:'bunny',name:'兔耳朵',cost:45},{id:'beret',name:'貝雷帽',cost:40},{id:'beanie',name:'毛線帽',cost:60,coin:true}]},
   face:{label:'眼鏡',items:[{id:'none',name:'不戴',cost:0},{id:'round',name:'圓框眼鏡',cost:25},{id:'sun',name:'太陽眼鏡',cost:40},{id:'heart',name:'愛心墨鏡',cost:80,coin:true}]},
-  neck:{label:'脖子',items:[{id:'none',name:'不戴',cost:0},{id:'scarf',name:'紅圍巾',cost:25},{id:'pearl',name:'珍珠項鍊',cost:45},{id:'cape',name:'小披風',cost:120,coin:true}]},
+  neck:{label:'披風與脖子',items:[{id:'cape',name:'淺粉小披風',cost:0},{id:'none',name:'不戴',cost:0},{id:'scarf',name:'紅圍巾',cost:25},{id:'pearl',name:'珍珠項鍊',cost:45},{id:'rcape',name:'紅色披風',cost:120,coin:true}]},
   back:{label:'背上',items:[{id:'none',name:'不背',cost:0},{id:'bag',name:'書包',cost:20},{id:'angel',name:'天使翅膀',cost:90},{id:'fly',name:'蝴蝶翅膀',cost:150,coin:true}]},
   top:{label:'上衣',items:[{id:'lav',name:'薰衣草紫',cost:0,color:'#cdbdf2'},{id:'pink',name:'蜜桃粉',cost:15,color:'#ffb3c9'},{id:'mint',name:'薄荷綠',cost:15,color:'#a8e6d1'},{id:'lemon',name:'檸檬黃',cost:15,color:'#ffe58a'},{id:'sky',name:'天空藍',cost:15,color:'#a9d4ff'},{id:'white',name:'牛奶白',cost:20,color:'#f7f3ea'},{id:'coral',name:'珊瑚橘',cost:20,color:'#ffb08a'}]},
   bottom:{label:'下身',items:[{id:'shorts',name:'灰色短褲',cost:0},{id:'skirt',name:'百褶裙',cost:30},{id:'jeans',name:'牛仔褲',cost:30}]},
@@ -358,15 +358,16 @@ const BADGES=[
 ];
 
 /* ---------- save ---------- */
-let S={stars:0,owned:{},fit:{hair:'none',face:'none',neck:'none',back:'none',top:'lav',bottom:'shorts',hand:'candy',pet:'none'},best:{},sound:true,
+let S={stars:0,owned:{},fit:{hair:'none',face:'none',neck:'cape',back:'none',top:'lav',bottom:'shorts',hand:'candy',pet:'none'},best:{},sound:true,
   camp:{wood:0,meat:0,fish:0,dish:0,coin:0,sta:40,staT:0,seen:0,done:0,tw:0,fuelT:0,lumT:0,trapT:0,orders:[],b:{kitchen:0,lumber:0,trap:0},eq:{axe:0,knife:0,rod:0,bag:0,fire:0,cat:0}},
   up:{jump:0,will:0,guard:0,magnet:0},badges:{},stats:{clears:0,resist:0,helped:0,clean:0,starsTotal:0},endless:0,daily:null};
 try{const r=JSON.parse(localStorage.getItem('princess-walk')||'null');
-  if(r&&r.fit){['stars','owned','sound','endless','daily','badges'].forEach(function(k){if(r[k]!==undefined)S[k]=r[k];});
+  if(r&&r.fit){['stars','owned','sound','endless','daily','badges','capeGiven'].forEach(function(k){if(r[k]!==undefined)S[k]=r[k];});
     Object.assign(S.fit,r.fit);Object.assign(S.up,r.up||{});Object.assign(S.stats,r.stats||{});
     if(r.camp){const eq=Object.assign(S.camp.eq,r.camp.eq||{}),bb=Object.assign(S.camp.b,r.camp.b||{});Object.assign(S.camp,r.camp);S.camp.eq=eq;S.camp.b=bb;}
     LEVELS.forEach(function(l){if(r.best&&r.best[l.id])S.best[l.id]=r.best[l.id];});}
 }catch(e){}
+if(!S.capeGiven){S.capeGiven=1;S.fit.neck='cape';}
 function save(){try{localStorage.setItem('princess-walk',JSON.stringify(S));}catch(e){}}
 const owns=(c,it)=>it.cost===0||!!S.owned[c+':'+it.id];
 function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
@@ -423,7 +424,8 @@ function drawGirl(c,x,y,s,fit,t,st){
   if(fit.back==='angel'){c.fillStyle='#fff';c.strokeStyle='#d8d8ea';c.lineWidth=1.5;[-1,1].forEach(function(d){c.beginPath();c.ellipse(d*36,-64+bob,21,11,d*-0.5,0,7);c.fill();c.stroke();c.beginPath();c.ellipse(d*33,-48+bob,15,8,d*-0.2,0,7);c.fill();c.stroke();});}
   else if(fit.back==='fly'){[-1,1].forEach(function(d){c.fillStyle='#ff9ec7';c.beginPath();c.ellipse(d*37,-68+bob,19,15,d*-0.4,0,7);c.fill();c.fillStyle='#b9a4ea';c.beginPath();c.ellipse(d*33,-44+bob,13,10,d*0.3,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(d*40,-70+bob,4,0,7);c.fill();});}
   else if(fit.back==='bag'){c.fillStyle='#e0607e';rr(c,-21,-62+bob,42,33,9);c.fill();}
-  if(fit.neck==='cape'){c.fillStyle='#d9486a';c.beginPath();c.moveTo(-16,-60+bob);c.lineTo(16,-60+bob);c.lineTo(26,-14+bob);c.lineTo(-26,-14+bob);c.closePath();c.fill();}
+  if(fit.neck==='cape'||fit.neck==='rcape'){const pk=fit.neck==='cape',sway=run?Math.sin(ph)*2:0;c.fillStyle=pk?'#ffc9dc':'#d9486a';c.beginPath();c.moveTo(-17,-60+bob);c.lineTo(17,-60+bob);c.lineTo(36+sway,-12+bob);c.quadraticCurveTo(18+sway,-4+bob,sway,-11+bob);c.quadraticCurveTo(-18+sway,-4+bob,-36+sway,-12+bob);c.closePath();c.fill();
+    c.strokeStyle=pk?'#ff9ec0':'#b8324f';c.lineWidth=2;c.beginPath();c.moveTo(36+sway,-12+bob);c.quadraticCurveTo(18+sway,-4+bob,sway,-11+bob);c.quadraticCurveTo(-18+sway,-4+bob,-36+sway,-12+bob);c.stroke();}
   c.fillStyle=HAIR;rr(c,-30,-117+bob,60,86,22);c.fill();
   const jeans=fit.bottom==='jeans';
   [[-6,1],[6,-1]].forEach(function(p){
@@ -501,7 +503,7 @@ function drawGirl(c,x,y,s,fit,t,st){
   c.restore();
   if(fit.neck==='scarf'){c.fillStyle='#e8504f';rr(c,-14,-60+bob,28,9,4.5);c.fill();rr(c,5,-55+bob,8,18,3);c.fill();}
   else if(fit.neck==='pearl'){c.fillStyle='#fff';c.strokeStyle='#c9c2d6';c.lineWidth=0.8;for(let i=-3;i<=3;i++){c.beginPath();c.arc(i*3.8,-58+bob+(3-Math.abs(i))*1.6,2.1,0,7);c.fill();c.stroke();}}
-  else if(fit.neck==='cape'){c.fillStyle='#ffcf4a';c.beginPath();c.arc(0,-57+bob,3.8,0,7);c.fill();}
+  else if(fit.neck==='cape'||fit.neck==='rcape'){const pk=fit.neck==='cape';c.fillStyle=pk?'#ffc9dc':'#d9486a';rr(c,-15,-60+bob,30,7,3.5);c.fill();c.fillStyle=pk?'#ff8fb3':'#ffcf4a';c.beginPath();c.arc(-4,-55+bob,3.4,0,7);c.arc(4,-55+bob,3.4,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(0,-55.5+bob,2,0,7);c.fill();}
   c.restore();
 }
 /* 小白襪: a tabby with white socks */
