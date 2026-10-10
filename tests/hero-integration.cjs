@@ -52,7 +52,12 @@ async function advance(page) {
     await pointTap(page, opts.nth(i)); return;
   }
   if (await page.locator('#dialogLayer').isVisible()) {
-    await pointTap(page, page.locator('#dlgText')); return;
+    if (!page.__broShot && await page.locator('#dlgName').textContent() === '哥哥' && await page.evaluate(()=>!Dialog.typing)) {
+      await page.screenshot({path:path.join(OUT,page.__qaName+'-dialogue.png')});
+      page.__broShot = true;
+    }
+    // The typewriter text briefly has zero height. Tap its stable dialog panel.
+    await pointTap(page, page.locator('#dialog')); return;
   }
   await page.waitForTimeout(100);
 }
@@ -91,7 +96,7 @@ async function boot(page, base) {
 }
 async function runCase(browser, name, fn, viewport={width:844,height:390}) {
   const ctx = await browser.newContext({...devices['iPhone 13'],viewport,screen:viewport,locale:'zh-TW'});
-  const page = await ctx.newPage(); page.setDefaultTimeout(6000);
+  const page = await ctx.newPage(); page.setDefaultTimeout(6000); page.__qaName = name;
   const record={name,status:'running',errors:[],checks:[]}; result.cases.push(record);
   page.on('pageerror',e=>record.errors.push(e.message));
   await page.addInitScript(draws);
