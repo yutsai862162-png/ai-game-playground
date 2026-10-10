@@ -32,6 +32,7 @@ jobs:
       - name: Open actual pinned HTTPS preview in mobile-emulation browsers
         env:
           NODE_PATH: ${{ runner.temp }}/hero-preview/node_modules
+          HERO_PREVIEW_REF: '58e5eecf9a6412a6bf81563cf86ff9ffa27ef3b8'
         run: node tests/hero-public-preview.cjs
       - uses: actions/upload-artifact@v4
         if: always()
