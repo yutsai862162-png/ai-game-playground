@@ -48,6 +48,10 @@ button:disabled{cursor:default}
 .ctop{display:flex;flex-wrap:wrap;gap:6px;padding:10px}
 .csheet{max-height:47%;border-top:3px solid var(--line);display:flex;flex-direction:column}
 .csheet .row .btn{padding:6px 12px;font-size:14px}
+.ctop .chip{font-size:12.5px;padding:2px 9px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{background:#fff;border:3px solid var(--line);border-radius:12px;padding:6px 4px;font-weight:800;font-size:14px}
+.seg button.on{background:var(--lav);box-shadow:inset 0 3px 0 rgba(59,42,77,.18)}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{background:var(--sun);border:3px solid var(--line);border-radius:14px;padding:7px 14px;font-weight:800;box-shadow:0 4px 0 var(--line);position:relative}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
@@ -153,7 +157,7 @@ button:disabled{cursor:default}
         <div class="two">
           <button class="mcard a" id="tomap"><strong>開始冒險</strong><span>九關地圖</span><em id="hflow"></em></button>
           <button class="mcard b" id="toend"><strong>無盡模式</strong><span>看能跑多遠</span><em id="hend"></em></button>
-          <button class="mcard c" id="tocamp"><strong>森林營地</strong><span>砍樹切肉賣錢</span><em id="hcamp"></em></button>
+          <button class="mcard c" id="tocamp"><strong>森林營地</strong><span>採集釣魚蓋房</span><em id="hcamp"></em></button>
         </div>
         <div class="row">
           <button class="btn" id="toshop">衣櫃與能力</button>
@@ -221,13 +225,14 @@ button:disabled{cursor:default}
 
     <div class="layer" id="camp" hidden>
       <div class="ctop">
-        <span class="chip">🪵 <b id="cwood">0</b></span><span class="chip">🍖 <b id="cmeat">0</b></span>
+        <span class="chip">🪵 <b id="cwood">0</b></span><span class="chip">🍖 <b id="cmeat">0</b></span><span class="chip">🐟 <b id="cfish">0</b></span><span class="chip">🍲 <b id="cdish">0</b></span>
         <span class="chip" id="cbagc">背包 <b id="cbag">0</b></span><span class="chip" id="cstac">體力 <b id="csta">0</b></span>
         <span class="chip hi">金幣 <b id="ccoin">0</b></span>
       </div>
       <div class="csheet panel">
-        <div class="row"><button class="btn" id="csell">全部賣掉</button><button class="btn alt" id="ceat">烤肉吃</button><button class="btn alt" data-home>回首頁</button></div>
-        <span class="hint" id="cmsg">點樹砍木頭、點肉攤切肉。賣掉換金幣，交訂單換星星。</span>
+        <div class="seg"><button id="ar-forest">森林</button><button id="ar-lake">冰湖</button><button id="ar-base">營地</button></div>
+        <div class="row"><button class="btn" id="csell">全部賣掉</button><button class="btn alt" id="ceat">吃東西</button><button class="btn alt" data-home>回首頁</button></div>
+        <span class="hint" id="cmsg"></span>
         <h3>訂單</h3><div class="list" id="corders"></div>
         <h3>裝備</h3><div class="list" id="cequip"></div>
       </div>
@@ -354,12 +359,12 @@ const BADGES=[
 
 /* ---------- save ---------- */
 let S={stars:0,owned:{},fit:{hair:'none',face:'none',neck:'none',back:'none',top:'lav',bottom:'shorts',hand:'candy',pet:'none'},best:{},sound:true,
-  camp:{wood:0,meat:0,coin:0,sta:40,staT:0,seen:0,done:0,tw:0,orders:[],eq:{axe:0,knife:0,bag:0,fire:0,cat:0}},
+  camp:{wood:0,meat:0,fish:0,dish:0,coin:0,sta:40,staT:0,seen:0,done:0,tw:0,fuelT:0,lumT:0,trapT:0,orders:[],b:{kitchen:0,lumber:0,trap:0},eq:{axe:0,knife:0,rod:0,bag:0,fire:0,cat:0}},
   up:{jump:0,will:0,guard:0,magnet:0},badges:{},stats:{clears:0,resist:0,helped:0,clean:0,starsTotal:0},endless:0,daily:null};
 try{const r=JSON.parse(localStorage.getItem('princess-walk')||'null');
   if(r&&r.fit){['stars','owned','sound','endless','daily','badges'].forEach(function(k){if(r[k]!==undefined)S[k]=r[k];});
     Object.assign(S.fit,r.fit);Object.assign(S.up,r.up||{});Object.assign(S.stats,r.stats||{});
-    if(r.camp){const eq=Object.assign(S.camp.eq,r.camp.eq||{});Object.assign(S.camp,r.camp);S.camp.eq=eq;}
+    if(r.camp){const eq=Object.assign(S.camp.eq,r.camp.eq||{}),bb=Object.assign(S.camp.b,r.camp.b||{});Object.assign(S.camp,r.camp);S.camp.eq=eq;S.camp.b=bb;}
     LEVELS.forEach(function(l){if(r.best&&r.best[l.id])S.best[l.id]=r.best[l.id];});}
 }catch(e){}
 function save(){try{localStorage.setItem('princess-walk',JSON.stringify(S));}catch(e){}}
@@ -1138,56 +1143,74 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 
-/* ---------- forest camp: gather, sell, upgrade ---------- */
+/* ---------- forest camp: three areas — forest (chop, hunt), frozen lake (fish), base (build, cook) ---------- */
 const EQ=[
   {id:'axe',name:'斧頭',d:'每砍一下多 1 個木頭',cost:[15,40,90,180]},
   {id:'knife',name:'菜刀',d:'每切一下多 1 塊肉',cost:[15,40,90,180]},
+  {id:'rod',name:'釣竿',d:'咬鉤的時間變長，魚也釣得更多',cost:[20,50,110]},
   {id:'bag',name:'背包',d:'多裝 10 個東西',cost:[20,50,100,180,300]},
-  {id:'fire',name:'營火',d:'體力上限 +10、恢復更快，還會多一棵樹或一個肉攤',cost:[60,150,300]},
+  {id:'fire',name:'營地等級',d:'體力上限 +10、恢復更快，森林多一棵樹或一個肉攤',cost:[60,150,300]},
   {id:'cat',name:'小白襪幫手',d:'小白襪自己幫忙撿，不花體力',cost:[50,120,250]}
 ];
+const RES={wood:{ic:'🪵',n:'木頭',p:1},meat:{ic:'🍖',n:'肉',p:2},fish:{ic:'🐟',n:'魚',p:3},dish:{ic:'🍲',n:'料理',p:9}};
+const RK=['wood','meat','fish','dish'];
+const BUILD={
+  kitchen:{name:'廚房',fx:0.14,cost:{wood:15,coin:10}},
+  fire:{name:'營火',fx:0.38},
+  lumber:{name:'伐木小屋',fx:0.64,cost:{wood:30,coin:25},res:'wood',rate:8,cap:15,T:'lumT'},
+  trap:{name:'燻肉架',fx:0.88,cost:{wood:25,meat:10,coin:25},res:'meat',rate:12,cap:10,T:'trapT'}
+};
+const AREAHINT={forest:'點樹和肉攤採集，圈圈變金色時點下去是暴擊。動物跑過去也可以點！',lake:'點冰洞甩竿，看到「!」馬上再點一下，越快釣越多。',base:'點建築：廚房做料理、小屋會自己生產、營火添柴讓體力恢復加倍。'};
 const CATRATE=[0,6,4,2.5];
-const camp={nodes:[],gx:180,tx:180,fx:[],catT:0,saveT:0,chop:0};
+const camp={area:'forest',nodes:[],gx:180,tx:180,fx:[],catT:0,saveT:0,chop:0,ani:[],aniT:4,yeti:null,yT:30,fish:{st:'idle',t:0,el:0}};
+function CG(){return Hl*0.38;}
 function staMax(){return 40+10*S.camp.eq.fire;}
 function bagCap(){return 20+10*S.camp.eq.bag;}
-function held(){return S.camp.wood+S.camp.meat;}
+function held(){const c=S.camp;return c.wood+c.meat+c.fish+c.dish;}
+function burning(){return Date.now()<S.camp.fuelT;}
+function gain(k,n){const c=S.camp;n=Math.min(n,bagCap()-held());if(n<=0)return 0;c[k]+=n;if(k==='wood')c.tw+=n;return n;}
 function staTick(){
-  const c=S.camp,max=staMax(),per=[5,4,3,2.5][c.eq.fire]*1000,now=Date.now();
+  const c=S.camp,max=staMax(),per=[5,4,3,2.5][c.eq.fire]*1000*(burning()?0.5:1),now=Date.now();
   if(c.sta>=max||!c.staT){c.staT=now;return;}
   const n=Math.floor((now-c.staT)/per);if(n>0){c.sta=Math.min(max,c.sta+n);c.staT+=n*per;}
 }
 function newOrder(){
-  const c=S.camp,k=1+0.3*(c.eq.axe+c.eq.knife)+Math.min(1,c.done*0.05),r=rnd();
-  let w=r<0.2?0:Math.round(ri(6,14)*k),m=r>0.8?0:Math.round(ri(3,8)*k);
-  const cap=bagCap();if(w+m>cap){const f=cap/(w+m);w=Math.floor(w*f);m=Math.floor(m*f);}
-  if(w+m<=0)w=5;
-  const v=w+2*m;
-  return {who:['王奶奶','陳伯伯','林阿姨','雜貨店老闆娘','李叔叔','警衛叔叔'][ri(0,5)],w:w,m:m,star:Math.round(v/2.5)+4,coin:Math.round(v*0.3)+2};
+  const c=S.camp,k=1+0.3*(c.eq.axe+c.eq.knife)+Math.min(1,c.done*0.05);
+  const pool=['wood','meat'];if(c.done>=1)pool.push('fish');if(c.b.kitchen)pool.push('dish');
+  const kinds=shuffle(pool).slice(0,rnd()<0.35?1:2),need={};
+  kinds.forEach(function(r){need[r]=r==='wood'?Math.round(ri(6,14)*k):r==='meat'?Math.round(ri(3,8)*k):r==='fish'?Math.round(ri(2,5)*(1+0.3*c.eq.rod)):ri(1,3);});
+  let tot=0;kinds.forEach(function(r){tot+=need[r];});
+  const cap=bagCap();if(tot>cap)kinds.forEach(function(r){need[r]=Math.max(1,Math.floor(need[r]*cap/tot));});
+  let v=0;kinds.forEach(function(r){v+=need[r]*RES[r].p;});
+  return {who:['王奶奶','陳伯伯','林阿姨','雜貨店老闆娘','李叔叔','警衛叔叔'][ri(0,5)],need:need,star:Math.round(v/2.5)+4,coin:Math.round(v*0.3)+2};
 }
 function campNodes(){
   const f=S.camp.eq.fire,n=[{t:'tree',fx:0.1},{t:'tree',fx:0.3},{t:'meat',fx:0.72}];
   if(f>=1)n.push({t:'tree',fx:0.92});
   if(f>=2)n.push({t:'meat',fx:0.52});
-  n.forEach(function(o){o.max=o.t==='tree'?5:4;o.hp=o.max;o.down=0;o.shake=0;});
+  n.forEach(function(o,i){o.max=o.t==='tree'?5:4;o.hp=o.max;o.down=0;o.shake=0;o.ph=i*0.23;});
   camp.nodes=n;
 }
 function cmsg(t){$('cmsg').textContent=t;}
-function cpop(x,y,txt,col){camp.fx.push({x:x,y:y,txt:txt,col:col||'#3b2a4d',life:0.9});}
+function cpop(x,y,txt,col){camp.fx.push({x:x,y:y,txt:txt,col:col||'#3b2a4d',life:1});}
+function bad(x,y,txt,msg){cpop(x,y,txt,'#c2506a');cmsg(msg);beep(180,0.12,'sawtooth');}
+function stored(k){const b=BUILD[k],c=S.camp;return c.b[k]?Math.min(b.cap,Math.floor((Date.now()-c[b.T])/1000/b.rate)):0;}
 function campUI(){
   const c=S.camp;
-  $('cwood').textContent=c.wood;$('cmeat').textContent=c.meat;$('ccoin').textContent=c.coin;
+  RK.forEach(function(r){$('c'+r).textContent=c[r];});$('ccoin').textContent=c.coin;
   $('cbag').textContent=held()+' / '+bagCap();$('cbagc').classList.toggle('warn',held()>=bagCap());
   $('csta').textContent=c.sta+' / '+staMax();$('cstac').classList.toggle('warn',c.sta<=0);
+  ['forest','lake','base'].forEach(function(a){$('ar-'+a).classList.toggle('on',camp.area===a);});
   const ro=$('corders');ro.innerHTML='';
   c.orders.forEach(function(o,i){
-    const row=document.createElement('div');row.className='line';
+    const ks=Object.keys(o.need),row=document.createElement('div');row.className='line';
     row.innerHTML='<div class="tx"><b></b><span></span></div>';
-    row.querySelector('b').textContent=o.who+'要 '+(o.w?'🪵 '+o.w+' ':'')+(o.m?'🍖 '+o.m:'');
+    row.querySelector('b').textContent=o.who+'要 '+ks.map(function(r){return RES[r].ic+' '+o.need[r];}).join('  ');
     row.querySelector('span').textContent='報酬 ★ '+o.star+'、金幣 '+o.coin;
     const b=document.createElement('button');b.className='btn';b.id='ord-'+i;b.textContent='交貨';
-    b.disabled=c.wood<o.w||c.meat<o.m;
+    b.disabled=ks.some(function(r){return c[r]<o.need[r];});
     b.addEventListener('click',function(){
-      c.wood-=o.w;c.meat-=o.m;S.stars+=o.star;c.coin+=o.coin;c.done++;c.orders[i]=newOrder();
+      ks.forEach(function(r){c[r]-=o.need[r];});S.stars+=o.star;c.coin+=o.coin;c.done++;c.orders[i]=newOrder();
       beep(988,0.12,'triangle');setTimeout(function(){beep(1319,0.2,'triangle');},110);
       cmsg(o.who+'：「謝謝妳！」拿到 ★ '+o.star+'、金幣 '+o.coin+'。');newBadges();save();campUI();
     });
@@ -1210,105 +1233,242 @@ function campUI(){
     row.appendChild(b);re.appendChild(row);
   });
 }
+function setArea(a){camp.area=a;camp.ani=[];camp.fish.st='idle';camp.tx=camp.gx=a==='lake'?W*0.34:W*0.5;cmsg(AREAHINT[a]);campUI();}
+['forest','lake','base'].forEach(function(a){$('ar-'+a).addEventListener('click',function(){beep(600,0.05);setArea(a);});});
 function openCamp(){
   idle('camp','camp');
   const c=S.camp,now=Date.now();
   if(!c.staT){c.staT=now;c.sta=staMax();}
   staTick();
+  c.orders=c.orders.filter(function(o){return o.need;});
   while(c.orders.length<3)c.orders.push(newOrder());
-  campNodes();camp.gx=camp.tx=W*0.5;camp.fx=[];
-  cmsg('點樹砍木頭、點肉攤切肉。賣掉換金幣，交訂單換星星。');
+  campNodes();camp.fx=[];camp.yeti=null;camp.yT=30;setArea(camp.area);
   if(c.eq.cat&&c.seen){
-    let n=Math.floor(Math.min(1200,(now-c.seen)/1000)/CATRATE[c.eq.cat]);n=Math.max(0,Math.min(n,bagCap()-held()));
-    if(n>0){const w=Math.round(n*0.6);c.wood+=w;c.meat+=n-w;c.tw+=w;cmsg('小白襪趁妳不在，幫忙撿了 '+n+' 個東西。');}
+    const n=Math.floor(Math.min(1200,(now-c.seen)/1000)/CATRATE[c.eq.cat]),w=gain('wood',Math.round(n*0.6)),m=gain('meat',n-Math.round(n*0.6));
+    if(w+m>0)cmsg('小白襪趁妳不在，幫忙撿了 '+(w+m)+' 個東西。');
   }
   c.seen=now;save();campUI();
 }
 function campTap(e){
-  const r=stage.getBoundingClientRect(),lx=(e.clientX-r.left)/scale,ly=(e.clientY-r.top)/scale,cg=Hl*0.38;
-  if(ly<cg-140||ly>cg+28)return;
-  let best=null,bd=36;
-  camp.nodes.forEach(function(n){const d=Math.abs(lx-n.fx*W);if(d<bd){bd=d;best=n;}});
-  if(best){e.preventDefault();chop(best);}
+  const r=stage.getBoundingClientRect(),lx=(e.clientX-r.left)/scale,ly=(e.clientY-r.top)/scale,cg=CG(),c=S.camp,y=camp.yeti;
+  if(ly<cg-150||ly>cg+86)return;
+  e.preventDefault();
+  if(y&&Math.abs(lx-y.x)<36&&ly>cg-6){
+    y.hp--;y.x+=16;y.hit=0.15;beep(300,0.06);
+    if(y.hp<=0){camp.yeti=null;camp.yT=50+rnd()*40;c.coin+=5;cpop(y.x,cg,'嚇跑了！金幣 +5','#3f9f86');cmsg('小雪怪被嚇跑了，還掉了 5 個金幣。');beep(988,0.15,'triangle');campUI();}
+    return;
+  }
+  if(camp.area==='forest'){
+    for(let i=0;i<camp.ani.length;i++){const a=camp.ani[i];
+      if(Math.abs(lx-a.x)<32&&ly>cg-4&&ly<cg+62){
+        if(a.k==='deer'){c.coin+=10;cpop(a.x,cg,'金鹿！金幣 +10','#e0a21a');cmsg('摸到傳說中的金鹿，拿到 10 個金幣！');beep(1319,0.2,'triangle');}
+        else{if(c.sta<=0){bad(a.x,cg,'沒體力','沒體力了。吃點東西，或去跑一關補滿。');return;}
+          const got=gain('meat',a.k==='boar'?8:3);if(!got){bad(a.x,cg,'背包滿了','背包滿了！先賣掉或交訂單。');return;}
+          c.sta--;cpop(a.x,cg,'🍖 +'+got);beep(400,0.08);}
+        camp.ani.splice(i,1);campUI();return;}}
+    if(ly>cg+28)return;
+    let best=null,bd=36;
+    camp.nodes.forEach(function(n){const d=Math.abs(lx-n.fx*W);if(d<bd){bd=d;best=n;}});
+    if(best)chop(best);
+  }else if(camp.area==='lake')fishTap();
+  else{
+    let best=null,bd=42;
+    Object.keys(BUILD).forEach(function(k){const d=Math.abs(lx-BUILD[k].fx*W);if(d<bd){bd=d;best=k;}});
+    if(best)baseTap(best);
+  }
 }
+function ring(n){return (g.t*0.9+n.ph)%1;}
 function chop(n){
-  const c=S.camp,x=n.fx*W,cg=Hl*0.38;
+  const c=S.camp,x=n.fx*W,cg=CG();
   camp.tx=Math.max(26,x-44);
   if(n.down>0){cmsg(n.t==='tree'?'這棵樹還在長，等一下。':'肉攤補貨中，等一下。');return;}
-  if(c.sta<=0){cmsg('沒體力了。烤肉吃可以補體力，去跑一關也會補滿。');cpop(x,cg-120,'沒體力','#c2506a');beep(180,0.12,'sawtooth');return;}
-  if(held()>=bagCap()){cmsg('背包滿了！先賣掉或交訂單。');cpop(x,cg-120,'背包滿了','#c2506a');beep(180,0.12,'sawtooth');return;}
-  const tree=n.t==='tree',amt=Math.min(1+(tree?c.eq.axe:c.eq.knife),bagCap()-held());
-  c.sta--;if(tree){c.wood+=amt;c.tw+=amt;}else c.meat+=amt;
+  const crit=ring(n)>0.8;
+  if(c.sta<=0&&!crit){bad(x,cg-120,'沒體力','沒體力了。吃點東西，或去跑一關補滿。');return;}
+  const tree=n.t==='tree',amt=gain(tree?'wood':'meat',(1+(tree?c.eq.axe:c.eq.knife))*(crit?3:1));
+  if(!amt){bad(x,cg-120,'背包滿了','背包滿了！先賣掉或交訂單。');return;}
+  if(!crit)c.sta--;
   n.hp--;n.shake=0.18;camp.chop=0.18;
-  cpop(x,cg-120,(tree?'🪵 +':'🍖 +')+amt);beep(tree?240:330,0.06);
+  cpop(x,cg-120,(crit?'暴擊！':'')+(tree?'🪵 +':'🍖 +')+amt,crit?'#e0a21a':null);beep(crit?880:tree?240:330,crit?0.12:0.06,crit?'triangle':null);
   if(n.hp<=0){n.down=tree?5:4;beep(140,0.18,'sawtooth');}
   campUI();
 }
+function fishTap(){
+  const c=S.camp,f=camp.fish,hx=W*0.62,cg=CG();
+  if(f.st==='idle'){
+    if(c.sta<2){bad(hx,cg-40,'沒體力','甩竿要 2 點體力。吃點東西，或去跑一關補滿。');return;}
+    if(held()>=bagCap()){bad(hx,cg-40,'背包滿了','背包滿了！先賣掉或交訂單。');return;}
+    c.sta-=2;f.st='wait';f.t=1.4+rnd()*3.2;cmsg('等魚上鉤……看到「!」再點！');beep(500,0.06);campUI();
+  }else if(f.st==='wait'){f.st='idle';bad(hx,cg-40,'太早了','太早拉竿，魚被嚇跑了。');}
+  else if(f.st==='bite'){
+    const n=gain('fish',(f.el<0.3?3:f.el<0.55?2:1)+(c.eq.rod>=2?1:0));
+    f.st='idle';cpop(hx,cg-40,(f.el<0.3?'神速！':'')+'🐟 +'+n,f.el<0.3?'#e0a21a':null);cmsg(f.el<0.3?'反應超快，釣到大魚群！':'釣到了！');
+    beep(988,0.1,'triangle');setTimeout(function(){beep(1319,0.15,'triangle');},90);campUI();
+  }
+}
+function baseTap(k){
+  const c=S.camp,b=BUILD[k],x=b.fx*W,cg=CG();
+  camp.tx=k==='kitchen'?x+46:Math.max(26,x-46);
+  if(k==='fire'){
+    if(c.wood<5){bad(x,cg-70,'木頭不夠','添柴要 5 個木頭。');return;}
+    if(c.fuelT-Date.now()>480000){cmsg('火已經很旺了，晚點再添。');return;}
+    c.wood-=5;c.fuelT=Math.max(Date.now(),c.fuelT)+120000;cpop(x,cg-70,'火變旺了！','#e0a21a');cmsg('添了柴，接下來 2 分鐘體力恢復加倍。');beep(520,0.12,'triangle');save();campUI();return;
+  }
+  if(!c.b[k]){
+    const lack=Object.keys(b.cost).filter(function(r){return c[r]<b.cost[r];});
+    if(lack.length){bad(x,cg-70,'材料不夠','蓋'+b.name+'還缺：'+lack.map(function(r){return (RES[r]?RES[r].n:'金幣')+' '+(b.cost[r]-c[r]);}).join('、'));return;}
+    Object.keys(b.cost).forEach(function(r){c[r]-=b.cost[r];});c.b[k]=1;if(b.T)c[b.T]=Date.now();
+    cpop(x,cg-80,b.name+'蓋好了！','#3f9f86');cmsg(b.name+'蓋好了！'+(k==='kitchen'?'點它可以做料理，訂單也會開始要料理。':'它會自己慢慢生產，記得回來收。'));
+    beep(784,0.12,'triangle');setTimeout(function(){beep(1175,0.2,'triangle');},120);save();campUI();return;
+  }
+  if(k==='kitchen'){
+    const src=c.fish>=2?'fish':c.meat>=2?'meat':null;
+    if(!src||c.wood<1){bad(x,cg-70,'材料不夠','做料理要 2 條魚（或 2 塊肉）加 1 個木頭。');return;}
+    c[src]-=2;c.wood--;c.dish++;cpop(x,cg-70,'🍲 +1');cmsg('煮好一份'+(src==='fish'?'鮮魚湯':'燉肉')+'！料理可以賣 9 金幣，吃了補 25 體力。');beep(700,0.1,'triangle');campUI();return;
+  }
+  const n=stored(k);
+  if(!n){cmsg(b.name+'還在生產，等一下再來收。');return;}
+  const got=gain(b.res,n);if(!got){bad(x,cg-70,'背包滿了','背包滿了！先賣掉或交訂單。');return;}
+  c[b.T]=Date.now()-(n-got)*b.rate*1000;cpop(x,cg-70,RES[b.res].ic+' +'+got);beep(880,0.1,'triangle');campUI();
+}
 $('csell').addEventListener('click',function(){
-  const c=S.camp,gain=c.wood+c.meat*2;
-  if(!gain){cmsg('背包是空的，先去砍樹切肉。');return;}
-  c.coin+=gain;cmsg('賣掉 🪵 '+c.wood+'、🍖 '+c.meat+'，賺到金幣 '+gain+'。');c.wood=0;c.meat=0;
+  const c=S.camp;let gainC=0;const parts=[];
+  RK.forEach(function(r){if(c[r]){gainC+=c[r]*RES[r].p;parts.push(RES[r].ic+' '+c[r]);c[r]=0;}});
+  if(!gainC){cmsg('背包是空的，先去採集。');return;}
+  c.coin+=gainC;cmsg('賣掉 '+parts.join('、')+'，賺到金幣 '+gainC+'。');
   beep(880,0.1,'triangle');setTimeout(function(){beep(1175,0.15,'triangle');},90);save();campUI();
 });
 $('ceat').addEventListener('click',function(){
   const c=S.camp;
-  if(c.meat<3){cmsg('烤肉要 3 塊肉，可以補 12 點體力。');return;}
   if(c.sta>=staMax()){cmsg('體力是滿的，先不用吃。');return;}
-  c.meat-=3;c.sta=Math.min(staMax(),c.sta+12);cmsg('在營火上烤肉吃，體力 +12！');beep(660,0.12,'triangle');save();campUI();
+  if(c.dish>0){c.dish--;c.sta=Math.min(staMax(),c.sta+25);cmsg('吃了一份料理，體力 +25！');}
+  else if(c.meat>=3){c.meat-=3;c.sta=Math.min(staMax(),c.sta+12);cmsg('烤了 3 塊肉吃，體力 +12！');}
+  else{cmsg('要 1 份料理（+25 體力）或 3 塊肉（+12 體力）才能吃。');return;}
+  beep(660,0.12,'triangle');save();campUI();
 });
 function campTick(dt){
-  const c=S.camp,before=c.sta;
+  const c=S.camp,before=c.sta,cg=CG();
   staTick();if(c.sta!==before)campUI();
   camp.chop=Math.max(0,camp.chop-dt);
   camp.nodes.forEach(function(n){n.shake=Math.max(0,n.shake-dt);if(n.down>0){n.down-=dt;if(n.down<=0){n.down=0;n.hp=n.max;}}});
   camp.gx+=(camp.tx-camp.gx)*Math.min(1,dt*9);
-  if(c.eq.cat){camp.catT+=dt;if(camp.catT>=CATRATE[c.eq.cat]){camp.catT=0;
-    if(held()<bagCap()){const tree=rnd()<0.6;if(tree){c.wood++;c.tw++;}else c.meat++;cpop(W*0.5-44,Hl*0.38+8,tree?'喵 🪵 +1':'喵 🍖 +1','#8a6a48');campUI();}}}
+  if(c.eq.cat){camp.catT+=dt;if(camp.catT>=CATRATE[c.eq.cat]){camp.catT=0;const tree=rnd()<0.6;if(gain(tree?'wood':'meat',1)){cpop(W*0.5-44,cg+20,tree?'喵 🪵 +1':'喵 🍖 +1','#8a6a48');campUI();}}}
+  if(camp.area==='forest'){
+    camp.aniT-=dt;
+    if(camp.aniT<=0){camp.aniT=5+rnd()*5;const r=rnd(),k=r<0.08?'deer':r<0.32?'boar':'rabbit',dir=rnd()<0.5?1:-1;
+      camp.ani.push({k:k,dir:dir,x:dir>0?-30:W+30,spd:k==='rabbit'?70:k==='boar'?115:150});}
+    camp.ani.forEach(function(a){a.x+=a.dir*a.spd*dt;});
+    camp.ani=camp.ani.filter(function(a){return a.x>-50&&a.x<W+50;});
+  }else if(camp.area==='lake'){
+    const f=camp.fish;
+    if(f.st==='wait'){f.t-=dt;if(f.t<=0){f.st='bite';f.el=0;beep(1200,0.08,'triangle');}}
+    else if(f.st==='bite'){f.el+=dt;if(f.el>0.75+0.25*c.eq.rod){f.st='idle';cmsg('慢了一點，魚跑掉了。');}}
+  }
+  const y=camp.yeti;
+  if(y){y.hit=Math.max(0,(y.hit||0)-dt);y.x-=26*dt;
+    if(y.x<=W*0.5){let n=0;RK.forEach(function(r){const t=Math.floor(c[r]*0.3);c[r]-=t;n+=t;});camp.yeti=null;camp.yT=50+rnd()*40;
+      cpop(W*0.5,cg,'被偷走 '+n+' 個！','#c2506a');cmsg('小雪怪偷走了 '+n+' 個東西就跑了！下次看到要趕快點牠。');beep(160,0.25,'sawtooth');campUI();}}
+  else{camp.yT-=dt;if(camp.yT<=0){if(held()>=5){camp.yeti={x:W+30,hp:5,max:5};cmsg('小雪怪來偷東西了！快連點牠，把牠嚇跑！');beep(220,0.2,'sawtooth');}else camp.yT=15;}}
   for(const p of camp.fx){p.life-=dt;p.y-=34*dt;}
   if(camp.fx.length)camp.fx=camp.fx.filter(function(p){return p.life>0;});
-  camp.saveT+=dt;if(camp.saveT>5){camp.saveT=0;c.seen=Date.now();save();}
+  camp.saveT+=dt;if(camp.saveT>5){camp.saveT=0;c.seen=Date.now();save();if(camp.area==='base')campUI();}
+}
+function hut(c,x,cg,wall,roof){
+  c.fillStyle=wall;rr(c,x-26,cg-40,52,40,4);c.fill();
+  c.fillStyle=roof;c.beginPath();c.moveTo(x-34,cg-38);c.lineTo(x,cg-68);c.lineTo(x+34,cg-38);c.closePath();c.fill();
+  c.fillStyle='#fff';c.beginPath();c.moveTo(x-16,cg-54);c.lineTo(x,cg-68);c.lineTo(x+16,cg-54);c.lineTo(x+8,cg-51);c.lineTo(x,cg-56);c.lineTo(x-8,cg-51);c.closePath();c.fill();
+  c.fillStyle='#7a5a3c';rr(c,x-8,cg-22,16,22,3);c.fill();
+}
+function tag(c,x,y,txt,bg){
+  c.font='800 12px sans-serif';const w=c.measureText(txt).width+14;
+  c.fillStyle=bg||'#ffcf4a';rr(c,x-w/2,y-10,w,20,10);c.fill();c.strokeStyle='#3b2a4d';c.lineWidth=2;c.stroke();
+  c.fillStyle='#3b2a4d';c.fillText(txt,x,y+1);
+}
+function drawFire(c,fx,fy,big){
+  const t=g.t,fh=(big?34:16)+Math.sin(t*11)*3;
+  c.fillStyle='rgba(255,170,60,'+(big?0.22:0.1)+')';c.beginPath();c.arc(fx,fy-12,(big?46:26)+Math.sin(t*7)*3,0,7);c.fill();
+  c.strokeStyle='#7a5a3c';c.lineWidth=6;c.lineCap='round';line(c,fx-16,fy,fx+16,fy-7);line(c,fx-16,fy-7,fx+16,fy);
+  c.fillStyle='#ff8a3d';c.beginPath();c.moveTo(fx-11,fy-6);c.quadraticCurveTo(fx-14,fy-fh*0.6,fx+Math.sin(t*9)*3,fy-fh-6);c.quadraticCurveTo(fx+14,fy-fh*0.6,fx+11,fy-6);c.closePath();c.fill();
+  c.fillStyle='#ffd35c';c.beginPath();c.moveTo(fx-6,fy-6);c.quadraticCurveTo(fx-7,fy-fh*0.4,fx,fy-fh*0.7);c.quadraticCurveTo(fx+7,fy-fh*0.4,fx+6,fy-6);c.closePath();c.fill();
 }
 function drawCamp(){
-  const c=ctx,cg=Hl*0.38,t=g.t;
+  const c=ctx,cg=CG(),t=g.t,a=camp.area,cs=S.camp;
   c.setTransform(dpr*scale,0,0,dpr*scale,0,0);
-  const sk=c.createLinearGradient(0,0,0,cg);sk.addColorStop(0,'#bfe1f4');sk.addColorStop(1,'#f1fafe');
+  const sk=c.createLinearGradient(0,0,0,cg);sk.addColorStop(0,a==='lake'?'#c9dcf4':'#bfe1f4');sk.addColorStop(1,'#f1fafe');
   c.fillStyle=sk;c.fillRect(0,0,W,Hl);
   c.fillStyle='#e3f1f9';c.beginPath();c.ellipse(W*0.25,cg-10,W*0.5,70,0,0,7);c.ellipse(W*0.85,cg-6,W*0.45,54,0,0,7);c.fill();
   for(let i=0;i<9;i++){const x=hash(i+3)*W,h=30+hash(i+20)*26,y=cg-34+hash(i+7)*14;
     c.fillStyle='#8fbfa6';c.beginPath();c.moveTo(x,y-h);c.lineTo(x+h*0.34,y);c.lineTo(x-h*0.34,y);c.closePath();c.fill();}
   c.fillStyle='#f6fbfe';c.fillRect(0,cg-22,W,Hl);
-  c.fillStyle='rgba(120,160,190,.16)';c.beginPath();c.ellipse(W*0.5,cg+52,W*0.34,20,0,0,7);c.fill();
   c.textAlign='center';c.textBaseline='middle';
-  camp.nodes.forEach(function(n){
-    const x=n.fx*W+(n.shake>0?Math.sin(t*70)*3:0);
-    if(n.t==='tree'){
-      if(n.down>0){c.fillStyle='#8a6a48';rr(c,x-9,cg-12,18,12,3);c.fill();c.fillStyle='#c79a62';c.beginPath();c.ellipse(x,cg-12,9,3.5,0,0,7);c.fill();
-        c.fillStyle='#7a6a8c';c.font='800 12px sans-serif';c.fillText(Math.ceil(n.down)+' 秒',x,cg-28);return;}
-      c.fillStyle='#8a6a48';c.fillRect(x-6,cg-30,12,30);
-      [[36,-28,-72],[29,-54,-94],[21,-78,-114]].forEach(function(q){c.fillStyle='#3f9a72';c.beginPath();c.moveTo(x,cg+q[2]);c.lineTo(x+q[0]/2,cg+q[1]);c.lineTo(x-q[0]/2,cg+q[1]);c.closePath();c.fill();
-        c.fillStyle='#fff';c.beginPath();c.moveTo(x,cg+q[2]);c.lineTo(x+q[0]*0.2,cg+q[2]+14);c.lineTo(x,cg+q[2]+10);c.lineTo(x-q[0]*0.2,cg+q[2]+14);c.closePath();c.fill();});
-    }else{
-      c.fillStyle='#8a6a48';c.fillRect(x-24,cg-22,5,22);c.fillRect(x+19,cg-22,5,22);
-      c.fillStyle='#c79a62';rr(c,x-30,cg-30,60,9,3);c.fill();
-      if(n.down>0){c.fillStyle='#7a6a8c';c.font='800 12px sans-serif';c.fillText('補貨 '+Math.ceil(n.down)+' 秒',x,cg-44);return;}
-      c.font=(26+n.hp*3)+'px sans-serif';c.fillStyle='#3b2a4d';c.fillText('🍖',x,cg-50);
-    }
-    c.fillStyle='rgba(59,42,77,.25)';rr(c,x-16,cg-132,32,5,2.5);c.fill();
-    c.fillStyle=n.t==='tree'?'#5fbf8a':'#ff8fb3';rr(c,x-16,cg-132,32*n.hp/n.max,5,2.5);c.fill();
-  });
-  const fx=W*0.5,fy=cg+50,fl=S.camp.eq.fire;
-  c.fillStyle='rgba(255,170,60,.18)';c.beginPath();c.arc(fx,fy-12,34+fl*5+Math.sin(t*7)*3,0,7);c.fill();
-  c.strokeStyle='#7a5a3c';c.lineWidth=6;c.lineCap='round';line(c,fx-16,fy,fx+16,fy-7);line(c,fx-16,fy-7,fx+16,fy);
-  const fh=22+fl*5+Math.sin(t*11)*3;
-  c.fillStyle='#ff8a3d';c.beginPath();c.moveTo(fx-11,fy-6);c.quadraticCurveTo(fx-14,fy-fh*0.6,fx+Math.sin(t*9)*3,fy-fh-6);c.quadraticCurveTo(fx+14,fy-fh*0.6,fx+11,fy-6);c.closePath();c.fill();
-  c.fillStyle='#ffd35c';c.beginPath();c.moveTo(fx-6,fy-6);c.quadraticCurveTo(fx-7,fy-fh*0.4,fx,fy-fh*0.7);c.quadraticCurveTo(fx+7,fy-fh*0.4,fx+6,fy-6);c.closePath();c.fill();
-  drawCat(c,fx-50,fy+6,1,t,false,S.fit.pet);
+  if(a==='forest'){
+    camp.nodes.forEach(function(n){
+      const x=n.fx*W+(n.shake>0?Math.sin(t*70)*3:0);
+      if(n.t==='tree'){
+        if(n.down>0){c.fillStyle='#8a6a48';rr(c,x-9,cg-12,18,12,3);c.fill();c.fillStyle='#c79a62';c.beginPath();c.ellipse(x,cg-12,9,3.5,0,0,7);c.fill();
+          c.fillStyle='#7a6a8c';c.font='800 12px sans-serif';c.fillText(Math.ceil(n.down)+' 秒',x,cg-28);return;}
+        c.fillStyle='#8a6a48';c.fillRect(x-6,cg-30,12,30);
+        [[36,-28,-72],[29,-54,-94],[21,-78,-114]].forEach(function(q){c.fillStyle='#3f9a72';c.beginPath();c.moveTo(x,cg+q[2]);c.lineTo(x+q[0]/2,cg+q[1]);c.lineTo(x-q[0]/2,cg+q[1]);c.closePath();c.fill();
+          c.fillStyle='#fff';c.beginPath();c.moveTo(x,cg+q[2]);c.lineTo(x+q[0]*0.2,cg+q[2]+14);c.lineTo(x,cg+q[2]+10);c.lineTo(x-q[0]*0.2,cg+q[2]+14);c.closePath();c.fill();});
+      }else{
+        c.fillStyle='#8a6a48';c.fillRect(x-24,cg-22,5,22);c.fillRect(x+19,cg-22,5,22);
+        c.fillStyle='#c79a62';rr(c,x-30,cg-30,60,9,3);c.fill();
+        if(n.down>0){c.fillStyle='#7a6a8c';c.font='800 12px sans-serif';c.fillText('補貨 '+Math.ceil(n.down)+' 秒',x,cg-44);return;}
+        c.font=(26+n.hp*3)+'px sans-serif';c.fillStyle='#3b2a4d';c.fillText('🍖',x,cg-50);
+      }
+      const p=ring(n),hot=p>0.8;
+      c.strokeStyle=hot?'#ffb400':'rgba(59,42,77,.28)';c.lineWidth=hot?4:2;c.beginPath();c.arc(x,cg-58,36-27*p,0,7);c.stroke();
+      c.fillStyle='rgba(59,42,77,.25)';rr(c,x-16,cg-132,32,5,2.5);c.fill();
+      c.fillStyle=n.t==='tree'?'#5fbf8a':'#ff8fb3';rr(c,x-16,cg-132,32*n.hp/n.max,5,2.5);c.fill();
+    });
+    camp.ani.forEach(function(q){const hop=Math.abs(Math.sin(t*(q.k==='rabbit'?9:13)))*(q.k==='rabbit'?12:5);
+      c.save();c.translate(q.x,cg+34-hop);if(q.dir>0)c.scale(-1,1);c.font='28px sans-serif';c.fillStyle='#3b2a4d';c.fillText(q.k==='rabbit'?'🐇':q.k==='boar'?'🐗':'🦌',0,0);c.restore();
+      if(q.k==='deer'){c.fillStyle='#ffcf4a';starPath(c,q.x,cg+6-hop,6,t*3);c.fill();}});
+    drawCat(c,W*0.5-10,cg+70,1,t,false,S.fit.pet);
+  }else if(a==='lake'){
+    c.fillStyle='#cfe6f7';c.beginPath();c.ellipse(W*0.6,cg+34,W*0.46,40,0,0,7);c.fill();
+    c.strokeStyle='rgba(255,255,255,.9)';c.lineWidth=2;line(c,W*0.36,cg+22,W*0.5,cg+30);line(c,W*0.74,cg+44,W*0.88,cg+38);
+    const hx=W*0.62,hy=cg+36,f=camp.fish;
+    c.fillStyle='#4f86b8';c.beginPath();c.ellipse(hx,hy,24,10,0,0,7);c.fill();
+    c.fillStyle='rgba(255,255,255,.5)';c.beginPath();c.ellipse(hx-6,hy-2,8,2.5,0,0,7);c.fill();
+    if(f.st!=='idle'){const by=hy-3+(f.st==='bite'?Math.sin(t*40)*4:Math.sin(t*3)*1.5);
+      c.strokeStyle='#7a6a8c';c.lineWidth=1.3;c.beginPath();c.moveTo(camp.gx+26,cg-40);c.quadraticCurveTo((camp.gx+hx)/2+10,cg-60,hx,by);c.stroke();
+      c.fillStyle='#ff5a5a';c.beginPath();c.arc(hx,by,4.5,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(hx,by-2,2.5,Math.PI,0);c.fill();
+      if(f.st==='bite'){c.fillStyle='#ff5a5a';c.beginPath();c.arc(hx,hy-44,17,0,7);c.fill();c.fillStyle='#fff';c.font='800 24px sans-serif';c.fillText('!',hx,hy-43);}}
+    else tag(c,hx,hy-34,'點這裡甩竿');
+    drawCat(c,W*0.16,cg+52,1,t,false,S.fit.pet);
+  }else{
+    Object.keys(BUILD).forEach(function(k){
+      const b=BUILD[k],x=b.fx*W;
+      if(k==='fire'){drawFire(c,x,cg+4,burning());
+        if(burning()){const s=Math.ceil((cs.fuelT-Date.now())/1000);tag(c,x,cg-66,'體力加倍 '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0'));}
+        else tag(c,x,cg-52,'添柴 🪵5','#fff');return;}
+      if(!cs.b[k]){
+        c.fillStyle='#8a6a48';c.fillRect(x-3,cg-40,6,40);c.fillStyle='#e8cfa3';rr(c,x-30,cg-62,60,26,5);c.fill();c.strokeStyle='#8a6a48';c.lineWidth=2;c.stroke();
+        c.fillStyle='#3b2a4d';c.font='800 12px sans-serif';c.fillText('蓋'+b.name,x,cg-49);
+        c.font='800 10.5px sans-serif';c.fillStyle='#7a6a8c';c.fillText(Object.keys(b.cost).map(function(r){return (RES[r]?RES[r].ic:'金幣')+b.cost[r];}).join(' '),x,cg-76);return;}
+      if(k==='kitchen'){hut(c,x,cg,'#f3d9b0','#d9486a');c.font='18px sans-serif';c.fillText('🍲',x+17,cg-12);
+        c.fillStyle='rgba(180,190,200,.6)';for(let i=0;i<3;i++){const q=(t*0.5+i/3)%1;c.beginPath();c.arc(x+16+Math.sin(q*6)*3,cg-70-q*26,4+q*4,0,7);c.fill();}}
+      else if(k==='lumber'){hut(c,x,cg,'#c79a62','#7a5a3c');c.font='16px sans-serif';c.fillText('🪵',x+20,cg-8);c.fillText('🪵',x-20,cg-8);}
+      else{c.fillStyle='#8a6a48';c.fillRect(x-24,cg-56,5,56);c.fillRect(x+19,cg-56,5,56);rr(c,x-28,cg-60,56,6,3);c.fill();c.font='17px sans-serif';[-14,0,14].forEach(function(o){c.fillText('🍖',x+o,cg-42);});}
+      if(b.res){const n=stored(k);if(n)tag(c,x,cg-84,RES[b.res].ic+' '+n+(n>=b.cap?' 滿了':''));}
+    });
+    drawCat(c,W*0.38-52,cg+30,1,t,false,S.fit.pet);
+  }
+  const y=camp.yeti;
+  if(y){const yy=cg+52+Math.abs(Math.sin(t*8))*-4,sx=y.x+(y.hit>0?Math.sin(t*80)*3:0);
+    c.fillStyle='rgba(59,42,77,.14)';c.beginPath();c.ellipse(sx,cg+56,20,5,0,0,7);c.fill();
+    c.fillStyle='#fff';c.strokeStyle='#b9cfe0';c.lineWidth=2;c.beginPath();c.ellipse(sx,yy-18,20,22,0,0,7);c.fill();c.stroke();
+    c.beginPath();c.arc(sx-18,yy-16,6,0,7);c.arc(sx+18,yy-16,6,0,7);c.fill();
+    c.fillStyle='#3b2a4d';c.beginPath();c.arc(sx-7,yy-24,2.4,0,7);c.arc(sx+5,yy-24,2.4,0,7);c.fill();
+    c.strokeStyle='#3b2a4d';c.lineWidth=1.8;c.beginPath();c.arc(sx-1,yy-16,4,0.1*Math.PI,0.9*Math.PI);c.stroke();
+    c.fillStyle='#7fb8e0';rr(c,sx-14,yy-9,28,6,3);c.fill();
+    c.fillStyle='rgba(59,42,77,.25)';rr(c,sx-16,yy-50,32,5,2.5);c.fill();c.fillStyle='#ff8fb3';rr(c,sx-16,yy-50,32*y.hp/y.max,5,2.5);c.fill();}
   const moving=Math.abs(camp.tx-camp.gx)>3;
   c.fillStyle='rgba(59,42,77,.14)';c.beginPath();c.ellipse(camp.gx,cg+9,16,4,0,0,7);c.fill();
   c.save();if(camp.chop>0){c.translate(camp.gx,cg+6);c.rotate(0.12);c.translate(-camp.gx,-cg-6);}
   drawGirl(c,camp.gx,cg+6,0.78,S.fit,t,{run:moving,air:false,face:'happy'});c.restore();
   c.fillStyle='rgba(255,255,255,.9)';
-  for(let i=0;i<22;i++){const x=(hash(i+60)*W+Math.sin(t+i)*10)%W,y=(hash(i+90)*Hl+t*(18+hash(i)*22))%(cg+60);c.beginPath();c.arc(x,y,1.6,0,7);c.fill();}
+  for(let i=0;i<22;i++){const x=(hash(i+60)*W+Math.sin(t+i)*10)%W,yy=(hash(i+90)*Hl+t*(18+hash(i)*22))%(cg+80);c.beginPath();c.arc(x,yy,1.6,0,7);c.fill();}
   for(const p of camp.fx){c.globalAlpha=Math.max(0,Math.min(1,p.life*2));c.fillStyle=p.col;c.font='800 15px sans-serif';c.fillText(p.txt,p.x,p.y);c.globalAlpha=1;}
 }
 
