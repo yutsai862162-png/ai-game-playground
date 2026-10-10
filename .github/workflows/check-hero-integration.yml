@@ -1,0 +1,54 @@
+name: Hero integration checks
+on:
+  push:
+    branches: [gpt/hero-art-integration]
+    paths:
+      - 'game/**'
+      - 'tests/hero-integration.cjs'
+      - '.github/workflows/check-hero-integration.yml'
+permissions:
+  contents: read
+concurrency:
+  group: hero-integration-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax and protect approved controls
+        run: |
+          node --check game/hero-assets.js
+          node --check tests/hero-integration.cjs
+          git show 24dbe8f0156dd90a2ded0da9fed208b3e3b7e0bc:game/game.js > "$RUNNER_TEMP/approved-game.js"
+          cmp "$RUNNER_TEMP/approved-game.js" game/game.js
+          echo 'Approved game controls: identical bytes'
+      - name: Install browser test dependency outside repository
+        run: |
+          mkdir -p "$RUNNER_TEMP/hero-qa"
+          cd "$RUNNER_TEMP/hero-qa"
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Test actual game with Chromium and WebKit
+        env:
+          NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
+        run: node tests/hero-integration.cjs
+      - name: Archive evidence and tested source
+        if: always()
+        run: |
+          mkdir -p qa-results
+          git rev-parse HEAD > qa-results/source-commit.txt
+          tar -czf qa-results/tested-game-source.tar.gz game tests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hero-integration-evidence
+          path: qa-results/
+          retention-days: 7
