@@ -852,7 +852,7 @@ function challenge(tm){
         ask({head:'第 '+(i+1)+' 個是什麼？',secs:6,onTimeout:lose,opts:quizOpts(seq[i],seq.filter(function(_,j){return j!==i;}),win,lose)});
       }});
     }else if(tm.ch==='math'){
-      const m=mathQ();ask({head:m.q,secs:9,onTimeout:lose,opts:quizOpts(m.a,m.w,win,lose)});
+      const m=mathQ();ask({head:m.q,secs:20,onTimeout:lose,opts:quizOpts(m.a,m.w,win,lose)});
     }else if(tm.ch==='eng'){
       const w=pairQ(WORDS);ask({head:'「'+w.en+'」是什麼意思？',secs:8,onTimeout:lose,opts:quizOpts(w.a,w.w,win,lose)});
     }else{
@@ -875,7 +875,7 @@ function meetNpc(e){
 function acceptQuest(q){
   if(q.quiz){
     const ok=function(){questReward(q);},no=function(){say(q.who,q.fail,{next:resume});};
-    if(q.quiz==='change'){const c=changeQ();ask({head:c.q,secs:12,onTimeout:no,opts:quizOpts(c.a,c.w,ok,no)});}
+    if(q.quiz==='change'){const c=changeQ();ask({head:c.q,secs:25,onTimeout:no,opts:quizOpts(c.a,c.w,ok,no)});}
     else{const w=pairQ(PLACES);ask({head:'「Where is the '+w.en+'?」他要去哪裡？',secs:9,onTimeout:no,opts:quizOpts(w.a,w.w,ok,no)});}
     return;
   }
