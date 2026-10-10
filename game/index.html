@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="宅男勇者">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#1d2730">
+<title>宅男勇者的人生副本｜第一章</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== 標題畫面 ===== -->
+  <section id="title" class="screen active">
+    <canvas id="titleArt" aria-hidden="true"></canvas>
+    <div class="title-wrap">
+      <div class="title-badge">CHAPTER 1</div>
+      <h1>宅男勇者的<br>人生副本</h1>
+      <p class="subtitle">第一章：無法通關的新手村</p>
+      <div class="title-buttons">
+        <button id="btnNew" class="btn primary" type="button">開始新遊戲 ▶</button>
+        <button id="btnContinue" class="btn" type="button" disabled>繼續遊戲</button>
+      </div>
+      <p id="storageNote" class="note warn" hidden>⚠️ 這個瀏覽器目前無法存檔（可能是無痕模式），關掉頁面後進度會消失。</p>
+      <p class="note">建議橫向遊玩・觸控／鍵盤皆可</p>
+    </div>
+  </section>
+
+  <!-- ===== 遊戲畫面（客廳） ===== -->
+  <section id="game" class="screen">
+    <canvas id="view"></canvas>
+    <div id="hud">
+      <div id="objective"><span class="obj-label">任務</span><span id="objText"></span></div>
+      <div class="hud-btns">
+        <button id="btnBag" type="button" aria-label="回憶背包">🎒<span>背包</span></button>
+        <button id="btnSave" type="button" aria-label="存檔">💾<span>存檔</span></button>
+        <button id="btnSound" type="button" aria-label="音效開關">🔊</button>
+        <button id="btnHome" type="button" aria-label="回到標題">🏠<span>標題</span></button>
+      </div>
+    </div>
+    <div id="controls">
+      <div id="dpad" aria-label="方向鍵">
+        <div class="dpad-vis">
+          <div class="arm up" data-dir="up">▲</div>
+          <div class="arm left" data-dir="left">◀</div>
+          <div class="arm right" data-dir="right">▶</div>
+          <div class="arm down" data-dir="down">▼</div>
+          <div class="knob"></div>
+        </div>
+      </div>
+      <button id="btnA" type="button" aria-label="互動"><b>A</b><span id="aLabel">互動</span></button>
+    </div>
+  </section>
+
+  <!-- ===== 超市畫面 ===== -->
+  <section id="shop" class="screen">
+    <div class="shop-sign">🛒 巷口超市</div>
+    <div class="shelves">
+      <div class="shelf"><span>🧴</span><span>🧴</span><span>🫙</span><span>🧴</span><span>🥫</span><span>🧴</span></div>
+      <div class="shelf"><span>🥬</span><span>🌿</span><span>🧅</span><span>🥕</span><span>🌿</span><span>🧄</span></div>
+      <div class="shelf"><span>🥚</span><span>🥚</span><span>🍮</span><span>🥛</span><span>🥚</span><span>🧈</span></div>
+    </div>
+    <canvas id="shopBro" aria-hidden="true"></canvas>
+    <div id="shopHud">
+      <div class="chips"><span class="chip" data-k="soy">醬油</span><span class="chip" data-k="scallion">蔥</span><span class="chip" data-k="egg">雞蛋</span></div>
+      <div class="mood">媽媽心情 <b id="moodFace">😊</b></div>
+    </div>
+  </section>
+
+  <!-- ===== 章節完成 ===== -->
+  <section id="clear" class="screen scrollable">
+    <div class="clear-wrap">
+      <div class="clear-col">
+        <div class="title-badge">CHAPTER 1 CLEAR</div>
+        <h2>無法通關的新手村……<br>居然通關了！</h2>
+        <ul id="clearStats" class="stats"></ul>
+        <h3>成就</h3>
+        <ul id="clearAch" class="ach"></ul>
+      </div>
+      <div class="clear-col teaser">
+        <div class="next">NEXT CHAPTER</div>
+        <h2>第二章<br>朋友就是外掛</h2>
+        <p>哥哥的宅友們即將登場。據說他們每個人都身懷一項「完全派不上用場」的奇怪技能……</p>
+        <p>而勇者的人生，正悄悄迎來一場重大的<b>「隊伍成員變更」</b>。</p>
+        <p class="soon">敬請期待</p>
+        <div class="title-buttons">
+          <button id="btnClearTitle" class="btn primary" type="button">返回標題</button>
+          <button id="btnClearRoam" class="btn" type="button">回客廳閒晃</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 對話（視覺小說式） ===== -->
+  <div id="dialogLayer" hidden>
+    <div id="choices" class="scrollable"></div>
+    <div id="dialog">
+      <canvas id="portrait" aria-hidden="true"></canvas>
+      <div class="dlg-body">
+        <div id="dlgName"></div>
+        <div id="dlgText" class="scrollable"></div>
+      </div>
+      <div id="dlgNext">▼</div>
+    </div>
+  </div>
+
+  <!-- 取得道具 -->
+  <div id="itemGet" class="overlay" hidden>
+    <div class="item-card">
+      <div class="item-head">✨ 放入回憶背包 ✨</div>
+      <div id="itemIcon" class="item-icon"></div>
+      <div id="itemName" class="item-name"></div>
+      <div id="itemDesc" class="item-desc"></div>
+      <div class="tap">點一下繼續</div>
+    </div>
+  </div>
+
+  <!-- 回憶背包 -->
+  <div id="bag" class="overlay" hidden>
+    <div class="panel">
+      <div class="panel-head"><span>🎒 回憶背包</span><button id="btnBagClose" type="button" aria-label="關閉">✕</button></div>
+      <ul id="bagList" class="scrollable"></ul>
+    </div>
+  </div>
+
+  <!-- 確認框 -->
+  <div id="confirm" class="overlay" hidden>
+    <div class="panel small">
+      <p id="confirmText"></p>
+      <div class="row"><button id="confirmOk" class="btn primary" type="button">確定</button><button id="confirmCancel" class="btn" type="button">取消</button></div>
+    </div>
+  </div>
+
+  <div id="card" hidden><div class="card-title"></div><div class="card-sub"></div></div>
+  <div id="phone" hidden><div class="phone-app">💬 家族群組</div><div class="phone-from"></div><div class="phone-text"></div></div>
+  <div id="toast" hidden></div>
+
+  <!-- 直式提示 -->
+  <div id="rotate">
+    <div class="rotate-phone">📱</div>
+    <p><b>請把手機轉成橫向</b></p>
+    <p class="small">iPhone 若無法旋轉，請先在控制中心關閉「直向鎖定」</p>
+    <button id="btnRotateOk" class="btn" type="button">先用直式繼續</button>
+  </div>
+
+  <div id="errorBar" hidden>
+    <span class="msg"></span>
+    <button id="btnErrTitle" type="button">回到標題</button>
+    <button id="btnErrClose" type="button" aria-label="關閉">✕</button>
+  </div>
+</div>
+<noscript><p style="color:#fff;padding:20px">需要開啟 JavaScript 才能遊玩。</p></noscript>
+<script src="art.js"></script>
+<script src="game.js"></script>
+<script src="story.js"></script>
+</body>
+</html>
