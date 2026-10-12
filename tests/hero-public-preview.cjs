@@ -3,7 +3,8 @@
 const { chromium, webkit, devices } = require('playwright');
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const assert = require('node:assert/strict');
-const REF = process.env.HERO_PREVIEW_REF || '6393797c212effd7a8cbac46559fcfe5e5399601';
+const { execFileSync } = require('node:child_process');
+const REF = process.env.HERO_PREVIEW_REF || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const ROOT = 'yutsai862162-png/ai-game-playground/' + REF + '/game/';
 const OUT = path.resolve('preview-results'); fs.mkdirSync(OUT, { recursive: true });
 const results = { ref: REF, checkedAt: new Date().toISOString(), scope: 'Remote HTTPS; mobile emulation, not physical iPhone', urls: [], cases: [] };

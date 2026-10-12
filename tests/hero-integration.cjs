@@ -8,7 +8,12 @@ const path = require('node:path');
 const http = require('node:http');
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
-const ROOT = process.cwd(), OUT = path.join(ROOT, 'qa-results');
+const ROOT = path.resolve(process.env.HERO_QA_GAME_ROOT || process.cwd());
+const OUT = path.resolve('qa-results');
+const engines = (process.env.HERO_QA_ENGINES || 'chromium,webkit').split(',');
+assert.ok(engines.length && engines.every(e => ['chromium', 'webkit'].includes(e)), 'Unknown engine');
+const onlyCase = process.env.HERO_QA_CASE || '';
+assert.ok(['', 'full-game'].includes(onlyCase), 'Unknown case filter');
 fs.mkdirSync(OUT, { recursive: true });
 const mime = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '.json':'application/json' };
 const server = http.createServer((req, res) => {
@@ -21,7 +26,23 @@ const server = http.createServer((req, res) => {
     res.end(bytes);
   });
 });
-const result = { commit: execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(), scope:'Real game served on loopback; Chromium/WebKit mobile emulation, not hardware', cases:[] };
+const result = { commit: execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+  gameRef: process.env.HERO_QA_GAME_REF || 'checkout', engines, onlyCase,
+  playwright: require('playwright/package.json').version,
+  rendererSha256: require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'game/hero-assets.js'))).digest('hex'),
+  scope:'Real game served on loopback; Chromium/WebKit mobile emulation, not hardware', cases:[] };
+const save = () => fs.writeFileSync(path.join(OUT, 'results.json'), JSON.stringify(result, null, 2));
+async function checkpoint(page, label) {
+  const record = page.__qaRecord;
+  record.lastCheckpoint = { label, at: new Date().toISOString() };
+  save(); // Keep the last attempted operation even when the page disappears.
+  record.lastCheckpoint.state = await page.evaluate(() => ({
+    screen: G.screen, locked: G.locked, stage: G.state && G.state.stage,
+    shoe: G.state && G.state.shoe, player: G.player && { x: G.player.x, y: G.player.y },
+    assets: window.HeroAssets && HeroAssets.status()
+  }));
+  save();
+}
 const draws = () => {
   window.__qaDraws = {};
   const original = CanvasRenderingContext2D.prototype.drawImage;
@@ -78,6 +99,7 @@ async function step(page, dir) {
   await page.waitForFunction(() => !G.player.moving, null, {timeout:1500});
 }
 async function visit(page, x, y) {
+  await checkpoint(page, 'visit '+x+','+y);
   // Read the production path finder, then perform real keyboard input one step at a time.
   // No teleporting, calling dialogue functions, or modifying quest state.
   const dirs = await page.evaluate(([x,y]) => findPath((px,py)=>Math.abs(px-x)+Math.abs(py-y)===1), [x,y]);
@@ -88,6 +110,7 @@ async function visit(page, x, y) {
   await page.keyboard.down(key); await page.waitForTimeout(100); await page.keyboard.up(key);
   await page.waitForTimeout(50);
   await page.locator('#btnA').tap();
+  await checkpoint(page, 'dialogue at '+x+','+y);
   await drain(page);
 }
 async function boot(page, base) {
@@ -95,17 +118,34 @@ async function boot(page, base) {
   await page.waitForFunction(() => typeof G !== 'undefined' && typeof Story !== 'undefined');
 }
 async function runCase(browser, name, fn, viewport={width:844,height:390}) {
+  if (onlyCase && !name.endsWith('-'+onlyCase)) return;
   const ctx = await browser.newContext({...devices['iPhone 13'],viewport,screen:viewport,locale:'zh-TW'});
+  await ctx.tracing.start({ screenshots: true, snapshots: true, sources: true });
   const page = await ctx.newPage(); page.setDefaultTimeout(6000); page.__qaName = name;
-  const record={name,status:'running',errors:[],checks:[]}; result.cases.push(record);
+  const record={name,status:'running',errors:[],checks:[],events:[],console:[],browserVersion:browser.version()};
+  result.cases.push(record); page.__qaRecord = record;
+  let cleaningUp = false;
+  const event = type => { record.events.push({type,at:new Date().toISOString(),cleaningUp}); save(); };
+  const disconnected = () => event('browser-disconnected');
+  browser.on('disconnected', disconnected);
+  page.on('crash', () => event('page-crash'));
+  page.on('close', () => event('page-close'));
+  ctx.on('close', () => event('context-close'));
+  page.on('console', m => { if (['warning','error'].includes(m.type())) record.console.push(m.text()); });
   page.on('pageerror',e=>record.errors.push(e.message));
   await page.addInitScript(draws);
   try { await fn(page,record); assert.deepEqual(record.errors,[]); record.status='passed'; }
   catch(e) { record.status='failed'; record.failure=e.message; record.stack=e.stack; }
   finally {
+    record.browserConnectedAfterCase = browser.isConnected();
+    record.pageClosedAfterCase = page.isClosed();
+    save();
     record.draws=await page.evaluate(()=>window.__qaDraws || {}).catch(()=>({}));
     await page.screenshot({path:path.join(OUT,name+'.png')}).catch(()=>{});
-    await ctx.close();
+    await ctx.tracing.stop(record.status === 'failed' ? {path:path.join(OUT,name+'-trace.zip')} : {}).catch(e=>{record.traceError=e.message;});
+    cleaningUp = true;
+    await ctx.close().catch(e=>{record.cleanupError=e.message;});
+    browser.off('disconnected', disconnected);
     console.log('QA_CASE '+JSON.stringify(record));
     fs.writeFileSync(path.join(OUT,'results.json'),JSON.stringify(result,null,2));
   }
@@ -114,9 +154,11 @@ async function runCase(browser, name, fn, viewport={width:844,height:390}) {
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const base='http://127.0.0.1:'+server.address().port;
   for (const [engine,type] of [['chromium',chromium],['webkit',webkit]]) {
+    if (!engines.includes(engine)) continue;
     const browser=await type.launch({headless:true});
     await runCase(browser,engine+'-full-game',async(page,r)=>{
       await boot(page,base);
+      await checkpoint(page, 'title ready');
       await page.locator('#btnNew').tap(); await drain(page);
       r.checks.push('start and introductory dialogue');
       await page.screenshot({path:path.join(OUT,engine+'-map.png')});

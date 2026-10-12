@@ -16,6 +16,10 @@ jobs:
   browser-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [current, before-cors]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,21 +42,41 @@ jobs:
           cd "$RUNNER_TEMP/hero-qa"
           npm install --no-save --package-lock=false playwright@1.56.1
           npx playwright install --with-deps chromium webkit
-      - name: Test actual game with Chromium and WebKit
+      - name: Prepare unchanged pre-CORS comparison
+        if: matrix.source == 'before-cors'
+        run: |
+          mkdir -p "$RUNNER_TEMP/hero-before-cors"
+          git archive 6393797c212effd7a8cbac46559fcfe5e5399601 game | tar -x -C "$RUNNER_TEMP/hero-before-cors"
+          echo "HERO_QA_GAME_ROOT=$RUNNER_TEMP/hero-before-cors" >> "$GITHUB_ENV"
+          echo 'HERO_QA_GAME_REF=6393797c212effd7a8cbac46559fcfe5e5399601' >> "$GITHUB_ENV"
+          echo 'HERO_QA_ENGINES=webkit' >> "$GITHUB_ENV"
+          echo 'HERO_QA_CASE=full-game' >> "$GITHUB_ENV"
+      - name: Test actual game with browser process diagnostics
+        id: integration
         env:
           NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
+          DEBUG: pw:browser
         run: |
-          node tests/hero-integration.cjs
-          node tests/hero-walk-geometry.cjs
+          mkdir -p qa-results
+          set -o pipefail
+          node tests/hero-integration.cjs 2>&1 | tee qa-results/browser-process.log
+      - name: Check walk geometry even if the full route fails
+        if: ${{ !cancelled() && steps.integration.outcome != 'skipped' && matrix.source == 'current' }}
+        env:
+          NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
+        run: node tests/hero-walk-geometry.cjs
       - name: Archive evidence and tested source
         if: always()
         run: |
           mkdir -p qa-results
           git rev-parse HEAD > qa-results/source-commit.txt
           tar -czf qa-results/tested-game-source.tar.gz game tests
+          if [ -n "${HERO_QA_GAME_ROOT:-}" ]; then
+            tar -czf qa-results/served-baseline-game.tar.gz -C "$HERO_QA_GAME_ROOT" game
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hero-integration-evidence
+          name: hero-integration-evidence-${{ matrix.source }}
           path: qa-results/
           retention-days: 7
