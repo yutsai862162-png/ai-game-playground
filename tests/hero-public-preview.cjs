@@ -31,16 +31,20 @@ async function probe(base) {
   return r.status === 'passed';
 }
 async function browserCase(name, type, url) {
-  const r = { name, url, status: 'failed', checks: [], errors: [], console: [], responses: [], failedRequests: [] };
+  const r = { name, url, status: 'failed', checks: [], errors: [], providerErrors: [], console: [], responses: [], failedRequests: [] };
   let browser, context, page;
+  const onGameError = e => r.errors.push(e.message);
+  const observe = target => {
+    target.setDefaultTimeout(15000);
+    target.on('pageerror', onGameError);
+    target.on('console', m => { if (['warning','error'].includes(m.type())) r.console.push(m.text()); });
+    target.on('response', res => { const u = res.url(); if (u.includes('/game/')) r.responses.push({ url:u, status:res.status() }); });
+    target.on('requestfailed', req => r.failedRequests.push({url:req.url(),failure:req.failure()}));
+  };
   try {
     browser = await type.launch();
     context = await browser.newContext({ ...devices['iPhone 13'], viewport: { width: 844, height: 390 } });
-    page = await context.newPage(); page.setDefaultTimeout(15000);
-    page.on('pageerror', e => r.errors.push(e.message));
-    page.on('console', m => { if (['warning','error'].includes(m.type())) r.console.push(m.text()); });
-    page.on('response', res => { const u = res.url(); if (u.includes('/game/')) r.responses.push({ url:u, status:res.status() }); });
-    page.on('requestfailed', req => r.failedRequests.push({url:req.url(),failure:req.failure()}));
+    page = await context.newPage(); observe(page);
     const response = await page.goto(url, {waitUntil:'domcontentloaded',timeout:40000});
     r.navigationStatus = response && response.status(); await page.waitForTimeout(1000);
     if (!(await page.locator('#btnNew').count())) {
@@ -48,12 +52,26 @@ async function browserCase(name, type, url) {
       await page.screenshot({path:path.join(OUT,name+'-confirmation.png')});
       const button = page.getByRole('button',{name:/continue|proceed|confirm|open|繼續|確認/i}).first();
       const link = page.getByRole('link',{name:/continue|proceed|confirm|open|繼續|確認/i}).first();
+      // Preserve the provider's errors separately. After its visible consent
+      // action, test the actual game in a fresh page in the same context so
+      // cancelled advertising work from the old document cannot contaminate it.
+      // No requests are mocked, no cookie is fabricated, and game errors still fail.
+      r.providerErrors.push(...r.errors.splice(0));
+      page.off('pageerror', onGameError);
+      page.on('pageerror', e => r.providerErrors.push(e.message));
       if (await button.count()) {r.confirmationAction=await button.innerText(); await button.click();}
       else if (await link.count()) {
         const href=new URL(await link.getAttribute('href'),page.url());
         assert(['rawcdn.githack.com','raw.githack.com'].includes(href.hostname),'Unexpected link');
         r.confirmationAction=await link.innerText(); await link.click();
       }
+      assert(r.confirmationAction, 'Expected a visible provider confirmation action');
+      await page.waitForFunction(()=>window.HeroAssets,null,{timeout:25000});
+      await page.close();
+      page = await context.newPage(); observe(page);
+      r.gameNavigationStatus = (await page.goto(url, {waitUntil:'domcontentloaded',timeout:40000})).status();
+      assert.equal(r.gameNavigationStatus, 200);
+      r.freshGamePageAfterConfirmation = true;
     }
     await page.waitForFunction(()=>window.HeroAssets,null,{timeout:25000});
     await page.waitForFunction(()=>{const s=HeroAssets.status();return s.loaded+s.failed===22;},null,{timeout:30000});
