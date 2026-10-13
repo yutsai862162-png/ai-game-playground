@@ -1,5 +1,7 @@
 # ai-game-playground
 
+目前已建立獨立家人分支與 [草稿 PR #4](https://github.com/yutsai862162-png/ai-game-playground/pull/4)；[固定版本試玩與遠端驗證](docs/FAMILY_PUBLIC_CANDIDATE.md)。尚未合併或改動 Pages，以下本機報告保留歷史驗證狀態。
+
 發布候選差異與旋轉對照：[最終檢查表](docs/FAMILY_CANDIDATE_CHECKLIST_2026-10-13.md)。Windows WebKit 模擬橫轉直仍保留失敗證據；iPhone 實機待驗，未部署。
 
 家人角色本機接入進度：見 [2026-10-13 真實素材驗證](docs/FAMILY_REAL_ASSETS_QA_2026-10-13.md)。四張原圖已由指定 Git commit 取得並接入；公開遊戲尚未更新。

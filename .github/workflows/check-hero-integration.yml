@@ -20,7 +20,7 @@ concurrency:
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -58,27 +58,27 @@ jobs:
         if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
         env:
           NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
-        run: node tests/hero-walk-geometry.cjs
+        run: timeout 180s node tests/hero-walk-geometry.cjs
       - name: Check original family assets, display and fallback
         if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
         env:
           NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
-        run: node tests/family-browser.cjs
+        run: timeout 180s node tests/family-browser.cjs
       - name: Check mobile controls and dialogue layout
         if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
         env:
           NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
-        run: node tests/mobile-layout.cjs
+        run: timeout 180s node tests/mobile-layout.cjs
       - name: Compare minimal and game viewport rotation
         if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
         env:
           NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
-        run: node tests/viewport-diagnostics.cjs
+        run: timeout 120s node tests/viewport-diagnostics.cjs
       - name: Capture kernel and memory diagnostics
         if: always()
         run: |
           mkdir -p qa-results
-          sudo dmesg --ctime | tail -n 120 > qa-results/kernel.log || true
+          sudo dmesg --ctime | tail -n 120 | tee qa-results/kernel.log || true
           free -m > qa-results/memory.txt
           df -h /dev/shm >> qa-results/memory.txt
           cat /sys/fs/cgroup/memory.events >> qa-results/memory.txt 2>/dev/null || true

@@ -11,6 +11,8 @@ for(const [name,hash] of Object.entries(manifest.files)){
 }
 const server=http.createServer((req,res)=>{const p=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=path.resolve(root,'.'+p+(p.endsWith('/')?'index.html':''));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(e,b)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css','.png':'image/png'})[path.extname(file)]||'application/octet-stream');res.end(b);});});
 const results=[];
+function save(){fs.writeFileSync(path.join(out,'family-results.json'),JSON.stringify({sourceCommit:manifest.sourceCommit,originalPngs:4,cases:results},null,2));}
+async function diagnostic(read){let timer;try{return await Promise.race([read(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Unresponsive browser during diagnostic capture')),2000);})]);}catch(e){return {unavailable:e.message};}finally{clearTimeout(timer);}}
 async function drain(page){for(let i=0;i<100&&await page.evaluate(()=>G.locked);i++){if(await page.locator('#dialogLayer').isVisible())await page.locator('#dialog').tap();await page.waitForTimeout(90);}await page.waitForFunction(()=>!G.locked);}
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
@@ -18,7 +20,7 @@ async function drain(page){for(let i=0;i<100&&await page.evaluate(()=>G.locked);
   const browser=await type.launch();
   for(const mode of ['loaded','missing','slow']){
    const ctx=await browser.newContext({...devices['iPhone 13'],viewport:{width:844,height:390},locale:'zh-TW'}),page=await ctx.newPage();
-   const r={engine,mode,status:'running',errors:[]};results.push(r);page.on('pageerror',e=>r.errors.push(e.message));
+   const r={engine,mode,status:'running',errors:[],events:[]};results.push(r);save();console.log('FAMILY_CASE_START '+engine+'/'+mode);page.on('pageerror',e=>{r.errors.push(e.message);save();});page.on('crash',()=>{r.events.push('page-crash');save();});
    try{
     if(mode==='missing')await page.route('**/assets/family/source/*.png',route=>route.fulfill({status:404,body:'missing'}));
     if(mode==='slow')await page.route('**/assets/family/source/*.png',async route=>{await new Promise(resolve=>setTimeout(resolve,1500));await route.continue();});
@@ -66,8 +68,8 @@ async function drain(page){for(let i=0;i<100&&await page.evaluate(()=>G.locked);
     assert.deepEqual(r.errors,[]);r.status='passed';
    }catch(e){
     r.status='failed';r.failure=e.stack;
-    r.viewport=await page.evaluate(()=>({innerWidth,innerHeight,layout:[document.documentElement.clientWidth,document.documentElement.clientHeight],app:document.getElementById('app').getBoundingClientRect().toJSON(),portrait:matchMedia('(orientation:portrait)').matches,visual:[visualViewport.width,visualViewport.height,visualViewport.scale]}));
-    await page.screenshot({path:path.join(out,'family-'+engine+'-'+mode+'-failure.png')}).catch(()=>{});
+    r.viewport=await diagnostic(()=>page.evaluate(()=>({innerWidth,innerHeight,layout:[document.documentElement.clientWidth,document.documentElement.clientHeight],app:document.getElementById('app').getBoundingClientRect().toJSON(),portrait:matchMedia('(orientation:portrait)').matches,visual:[visualViewport.width,visualViewport.height,visualViewport.scale]})));
+    save();await diagnostic(()=>page.screenshot({path:path.join(out,'family-'+engine+'-'+mode+'-failure.png')}));
     // Keep rotation failure visible; independently check a fresh portrait load.
     if(engine==='webkit'&&mode==='loaded'&&r.viewport.innerWidth===390){
      try{
@@ -79,7 +81,7 @@ async function drain(page){for(let i=0;i<100&&await page.evaluate(()=>G.locked);
      }catch(portraitError){r.freshPortrait=portraitError.message;}
     }
    }
-   finally{await ctx.close();}
+   finally{save();console.log('FAMILY_CASE_END '+JSON.stringify(r));await ctx.close();}
   }await browser.close();
  }
-})().catch(e=>results.push({status:'failed',failure:e.stack})).finally(()=>{fs.writeFileSync(path.join(out,'family-results.json'),JSON.stringify({sourceCommit:manifest.sourceCommit,originalPngs:4,cases:results},null,2));console.log(JSON.stringify(results,null,2));server.close();if(results.some(r=>r.status!=='passed'))process.exitCode=1;});
+})().catch(e=>results.push({status:'failed',failure:e.stack})).finally(()=>{save();console.log(JSON.stringify(results,null,2));server.close();if(results.some(r=>r.status!=='passed'))process.exitCode=1;});
