@@ -1,5 +1,11 @@
 # ai-game-playground
 
+發布候選差異與旋轉對照：[最終檢查表](docs/FAMILY_CANDIDATE_CHECKLIST_2026-10-13.md)。Windows WebKit 模擬橫轉直仍保留失敗證據；iPhone 實機待驗，未部署。
+
+家人角色本機接入進度：見 [2026-10-13 真實素材驗證](docs/FAMILY_REAL_ASSETS_QA_2026-10-13.md)。四張原圖已由指定 Git commit 取得並接入；公開遊戲尚未更新。
+以 HTTP 開啟 [家人素材檢查頁](game/design/family-integration.html)，或在遊戲標題點「家人們」檢視四位角色。
+本週剩餘工作與完成標準見 [家人上線路徑](docs/FAMILY_RELEASE_PLAN.md)；方向鍵已在本機改為隱形，測試與限制見 [手機操作驗證](docs/MOBILE_CONTROLS_QA_2026-10-13.md)。
+
 ChatGPT × Claude 協作的手機網頁遊戲專案：**《宅男勇者的人生副本》**。
 
 | 路徑 | 內容 |

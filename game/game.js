@@ -195,6 +195,9 @@ function setupInput() {
   };
   dpad.addEventListener('pointerdown', (e) => {
     e.preventDefault(); Sfx.init();
+    // The finger that started the pad owns it until release/cancel. A second
+    // touch must not steal its direction or make the first release ineffective.
+    if (padId !== null && padId !== e.pointerId) return;
     padId = e.pointerId;
     dpad.classList.add('active');
     try { dpad.setPointerCapture(e.pointerId); } catch (err) { /* 舊版瀏覽器 */ }

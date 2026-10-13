@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>家人素材接入檢查</title>
+<style>body{margin:0;padding:24px;background:#191b2b;color:#fff1df;font:16px system-ui}main{max-width:960px;margin:auto}a{color:#a8ccff}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}article{background:#282b40;border-radius:16px;padding:16px}canvas{width:100%;height:auto;aspect-ratio:1;background:#34384d;border-radius:10px}p{line-height:1.7}.status{color:#ffd184}</style>
+<main><h1>家人角色接入檢查</h1><p>四張已確認的原始站姿，依真實透明邊界對齊腳底。爸爸在地圖仍保留坐姿演出；媽媽與妹妹使用固定站姿，對話採原圖頭肩取景。</p><p><a href="../index.html">回到遊戲</a> · 標題「家人們」可看見四位角色，包含未來大嫂</p><div class="grid" id="cards"></div><p>腳底共用基準線，可見身高 49–53 邏輯像素。原 PNG 不裁切、不改寫，沒有新增走路動畫。</p></main>
+<script src="../art.js"></script><script src="../family-assets.js"></script>
+<script>
+function render(){
+  const cards=document.getElementById('cards');cards.replaceChildren();
+  for(const [id,m] of Object.entries(FamilyAssets.manifest)){
+    const card=document.createElement('article'), title=document.createElement('h2'), cv=document.createElement('canvas'), status=document.createElement('p'), desc=document.createElement('p');
+    title.textContent=m.name; cv.width=400;cv.height=400;
+    const ctx=cv.getContext('2d');ctx.scale(4,4);ctx.strokeStyle='#8292ad';ctx.beginPath();ctx.moveTo(5,85);ctx.lineTo(95,85);ctx.stroke();
+    if(!FamilyAssets.draw(ctx,50,85,id,{dir:'down',noShadow:true})) {ctx.fillStyle='#fff1df';ctx.font='5px sans-serif';ctx.textAlign='center';ctx.fillText('圖片載入中或暫時不可用',50,50);}
+    status.className='status';status.textContent=FamilyAssets.status()[id]==='ready'?'原始站姿已載入':'圖片暫時不可用';
+    desc.textContent={dad:'安靜、不戴眼鏡。坐姿沿用現有演出。',mom:'嘮叨的媽媽，保留原本家人互動。',sis:'成年妹妹，吐槽兼敘事者。',bride:'短髮、肉肉、溫柔；平等的隊友。'}[id];
+    card.append(title,cv,status,desc);cards.append(card);
+  }
+}
+render();window.addEventListener('familyassetschange',render);
+</script></html>

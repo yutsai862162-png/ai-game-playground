@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "af25a246bfda0685819b8c8d08e3bdf2f7c8e78f",
+  "dimensions": [
+    1024,
+    1536
+  ],
+  "files": {
+    "dad.png": "f37596ca07cdb343aec460bff89b4e92cd62ebd30d57ab77fecfe5267d78e428",
+    "mom.png": "02f61c27af6c97bbce36ffefa61d01434fc089d31c141d5b03baee47ef99e893",
+    "sister.png": "b280e4b15c73359a3b2bfd714f37828a5d19acb5cb86d54b7f2ecbb4297ab211",
+    "sister-in-law.png": "849f39baddbbb6540a1349232a593912ca9abb831503cc0163da6016c77cf8ca"
+  }
+}

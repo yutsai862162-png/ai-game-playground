@@ -23,6 +23,7 @@
       <h1>宅男勇者的<br>人生副本</h1>
       <p class="subtitle">第一章：無法通關的新手村</p>
       <div class="title-buttons">
+        <button id="btnFamily" class="btn" type="button">家人們</button>
         <button id="btnNew" class="btn primary" type="button">開始新遊戲 ▶</button>
         <button id="btnContinue" class="btn" type="button" disabled>繼續遊戲</button>
       </div>
@@ -32,6 +33,11 @@
   </section>
 
   <!-- ===== 遊戲畫面（客廳） ===== -->
+  <section id="familyGallery" hidden role="dialog" aria-modal="true" aria-labelledby="familyHeading">
+    <header><h2 id="familyHeading">勇者的家人們</h2><button id="btnFamilyClose" class="btn" type="button">返回標題</button></header>
+    <div class="family-grid"></div>
+    <p>有人負責叮嚀，有人安靜陪伴。這一桌，都是勇者最重要的人。</p>
+  </section>
   <section id="game" class="screen">
     <canvas id="view"></canvas>
     <div id="hud">
@@ -157,6 +163,7 @@
 <noscript><p style="color:#fff;padding:20px">需要開啟 JavaScript 才能遊玩。</p></noscript>
 <script src="art.js"></script>
 <script src="hero-assets.js"></script>
+<script src="family-assets.js"></script>
 <script src="game.js"></script>
 <script src="story.js"></script>
 </body>
