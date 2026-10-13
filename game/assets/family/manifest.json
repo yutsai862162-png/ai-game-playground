@@ -1,0 +1,24 @@
+{
+  "sourceCommit": "af25a246bfda0685819b8c8d08e3bdf2f7c8e78f",
+  "dimensions": [
+    1024,
+    1536
+  ],
+  "files": {
+    "dad.png": "f37596ca07cdb343aec460bff89b4e92cd62ebd30d57ab77fecfe5267d78e428",
+    "mom.png": "02f61c27af6c97bbce36ffefa61d01434fc089d31c141d5b03baee47ef99e893",
+    "sister.png": "b280e4b15c73359a3b2bfd714f37828a5d19acb5cb86d54b7f2ecbb4297ab211",
+    "sister-in-law.png": "849f39baddbbb6540a1349232a593912ca9abb831503cc0163da6016c77cf8ca"
+  },
+  "display": {
+    "width": 512,
+    "height": 768,
+    "scale": 0.5,
+    "files": {
+      "dad.png": "1c78f325e404a0a7909a8dcea43c53c9635fbdd2e9bb2741344e60e234f83f74",
+      "mom.png": "3d415f6c740b7e8c0176ff9af2b77b694604642ba7aedfe91458dcc9c11074c6",
+      "sister.png": "bb58c8a2dd51b89ba5275bea69a3804afb282be06f99ce98d2827065e8184ea0",
+      "sister-in-law.png": "e3371a14bfbdd970749e29d3fea3b4e4724c009a0461d493358f4da19bb7caaf"
+    }
+  }
+}

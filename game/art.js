@@ -16,7 +16,7 @@ const LOOKS = {
   bro: { kind: 'bro', skin: '#ffd7b0', hair: '#2a2422', shirt: '#4a78d0', pants: '#868e99', shoe: '#f4f4f4',
     head: [15.5, 13.2], body: [32, 17], leg: 4 },
   // 爸爸：安靜低調的中年爸爸。瘦高、長臉方下巴、髮線後退的灰黑短髮＋兩鬢灰白、
-  //       抬頭紋、粗眉、小鬍子、不戴眼鏡、白色汗衫＋卡其短褲＋藍白拖、拿遙控器
+  //       抬頭紋、粗眉、不戴眼鏡、白色汗衫＋卡其短褲＋藍白拖、拿遙控器
   dad: { kind: 'dad', skin: '#e8b98f', hair: '#3a3634', gray: '#a8a39c', shirt: '#f7f5ef', pants: '#b9a27a', shoe: '#3d6fd1',
     head: [9.4, 11.6], body: [16, 19], leg: 11 },
   // 媽媽：高壓、強勢、很會管事，但不是反派。俐落的短鮑伯頭、平直嚴格的眉毛、
@@ -349,12 +349,6 @@ const Art = (() => {
       ell(ctx, fx, ey + 3.2, 1, 0.8, '#f0b48e'); // 小圓鼻
     }
 
-    // 爸爸的小鬍子
-    if (L.kind === 'dad') {
-      ctx.fillStyle = '#3a3634';
-      ctx.beginPath(); ctx.ellipse(fx - 1.8, my - 2.4, 2.4, 1, -0.2, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(fx + 1.8, my - 2.4, 2.4, 1, 0.2, 0, Math.PI * 2); ctx.fill();
-    }
 
     // 嘴巴
     const lip = L.kind === 'mom' ? '#e0566a' : '#7a3b2e';

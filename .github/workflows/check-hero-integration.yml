@@ -1,11 +1,16 @@
-name: Hero integration checks
+name: Game and family integration checks
 on:
   push:
-    branches: [gpt/hero-art-integration]
+    branches: [gpt/hero-art-integration, gpt/family-integration]
     paths:
       - 'game/**'
-      - 'tests/hero-integration.cjs'
-      - 'tests/hero-walk-geometry.cjs'
+      - 'tests/**'
+      - '.github/workflows/check-hero-integration.yml'
+  pull_request:
+    branches: [main, gpt/hero-art-integration, gpt/family-integration]
+    paths:
+      - 'game/**'
+      - 'tests/**'
       - '.github/workflows/check-hero-integration.yml'
 permissions:
   contents: read
@@ -15,7 +20,7 @@ concurrency:
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -28,15 +33,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check syntax and protect approved controls
+      - name: Check syntax and protect approved gameplay contracts
         run: |
-          node --check game/hero-assets.js
-          node --check tests/hero-integration.cjs
-          node --check tests/hero-walk-geometry.cjs
-          git show 24dbe8f0156dd90a2ded0da9fed208b3e3b7e0bc:game/game.js > "$RUNNER_TEMP/approved-game.js"
-          cmp "$RUNNER_TEMP/approved-game.js" game/game.js
-          echo 'Approved game controls: identical bytes'
+          for file in game/*.js tests/*.cjs; do node --check "$file"; done
+          node tests/protected-contracts.cjs --self-test
+          node tests/family-assets.cjs
       - name: Install browser test dependency outside repository
+        id: browsers
         run: |
           mkdir -p "$RUNNER_TEMP/hero-qa"
           cd "$RUNNER_TEMP/hero-qa"
@@ -52,15 +55,35 @@ jobs:
           set -o pipefail
           timeout 300s node tests/hero-integration.cjs 2>&1 | tee qa-results/browser-process.log
       - name: Check walk geometry even if the full route fails
-        if: ${{ !cancelled() && steps.integration.outcome != 'skipped' }}
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
         env:
           NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
-        run: node tests/hero-walk-geometry.cjs
+        run: timeout 180s node tests/hero-walk-geometry.cjs
+      - name: Check original family assets, display and fallback
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
+        env:
+          NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
+        run: timeout 180s node tests/family-browser.cjs
+      - name: Check mobile controls and dialogue layout
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
+        env:
+          NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
+        run: timeout 180s node tests/mobile-layout.cjs
+      - name: Check continuous drag, jitter and multi-touch ownership
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
+        env:
+          NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
+        run: timeout 120s node tests/touch-drag.cjs
+      - name: Compare minimal and game viewport rotation
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
+        env:
+          NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
+        run: timeout 120s node tests/viewport-diagnostics.cjs
       - name: Capture kernel and memory diagnostics
         if: always()
         run: |
           mkdir -p qa-results
-          sudo dmesg --ctime | tail -n 120 > qa-results/kernel.log || true
+          sudo dmesg --ctime | tail -n 120 | tee qa-results/kernel.log || true
           free -m > qa-results/memory.txt
           df -h /dev/shm >> qa-results/memory.txt
           cat /sys/fs/cgroup/memory.events >> qa-results/memory.txt 2>/dev/null || true

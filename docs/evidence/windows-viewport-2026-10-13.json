@@ -1,0 +1,1765 @@
+{
+  "platform": "win32",
+  "playwright": "1.56.1",
+  "scope": "Automation viewport diagnostic, not physical iPhone orientation",
+  "cases": [
+    {
+      "engine": "chromium",
+      "target": "minimal",
+      "label": "landscape",
+      "status": "passed",
+      "initial": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": []
+      },
+      "initialStatus": "passed",
+      "rotated": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "rotationStatus": "passed",
+      "afterSyntheticEvents": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "reloaded": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "events": []
+      },
+      "reloadStatus": "passed"
+    },
+    {
+      "engine": "chromium",
+      "target": "minimal",
+      "label": "portrait",
+      "status": "passed",
+      "initial": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "events": []
+      },
+      "initialStatus": "passed",
+      "rotated": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": [
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "rotationStatus": "passed",
+      "afterSyntheticEvents": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": [
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "reloaded": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": []
+      },
+      "reloadStatus": "passed"
+    },
+    {
+      "engine": "chromium",
+      "target": "game",
+      "label": "landscape",
+      "status": "passed",
+      "initial": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 390,
+          "top": 0,
+          "right": 844,
+          "bottom": 390,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "initialStatus": "passed",
+      "rotated": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "rotationStatus": "passed",
+      "afterSyntheticEvents": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "reloaded": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "events": []
+      },
+      "reloadStatus": "passed"
+    },
+    {
+      "engine": "chromium",
+      "target": "game",
+      "label": "portrait",
+      "status": "passed",
+      "initial": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "initialStatus": "passed",
+      "rotated": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 390,
+          "top": 0,
+          "right": 844,
+          "bottom": 390,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "rotationStatus": "passed",
+      "afterSyntheticEvents": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 390,
+          "top": 0,
+          "right": 844,
+          "bottom": 390,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "reloaded": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 390,
+          "top": 0,
+          "right": 844,
+          "bottom": 390,
+          "left": 0
+        },
+        "events": []
+      },
+      "reloadStatus": "passed"
+    },
+    {
+      "engine": "webkit",
+      "target": "minimal",
+      "label": "landscape",
+      "status": "failed",
+      "initial": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": []
+      },
+      "initialStatus": "passed",
+      "rotated": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": [
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "rotationStatus": "failed",
+      "afterSyntheticEvents": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": [
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "reloaded": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "reloadStatus": "passed"
+    },
+    {
+      "engine": "webkit",
+      "target": "minimal",
+      "label": "portrait",
+      "status": "passed",
+      "initial": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "initialStatus": "passed",
+      "rotated": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "rotationStatus": "passed",
+      "afterSyntheticEvents": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "reloaded": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "reloadStatus": "passed"
+    },
+    {
+      "engine": "webkit",
+      "target": "game",
+      "label": "landscape",
+      "status": "failed",
+      "initial": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 390,
+          "top": 0,
+          "right": 844,
+          "bottom": 390,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "initialStatus": "passed",
+      "rotated": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 844,
+          "top": 0,
+          "right": 844,
+          "bottom": 844,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "rotationStatus": "failed",
+      "afterSyntheticEvents": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 844,
+          "top": 0,
+          "right": 844,
+          "bottom": 844,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "reloaded": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "reloadStatus": "passed"
+    },
+    {
+      "engine": "webkit",
+      "target": "game",
+      "label": "portrait",
+      "status": "passed",
+      "initial": {
+        "inner": [
+          390,
+          844
+        ],
+        "layout": [
+          390,
+          844
+        ],
+        "visual": [
+          390,
+          844,
+          1
+        ],
+        "portrait": true,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          }
+        ]
+      },
+      "initialStatus": "passed",
+      "rotated": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 390,
+          "top": 0,
+          "right": 844,
+          "bottom": 390,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "rotationStatus": "passed",
+      "afterSyntheticEvents": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 390,
+          "top": 0,
+          "right": 844,
+          "bottom": 390,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              390,
+              844
+            ],
+            "layout": [
+              390,
+              844
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "orientationchange",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          },
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "reloaded": {
+        "inner": [
+          844,
+          390
+        ],
+        "layout": [
+          844,
+          390
+        ],
+        "visual": [
+          844,
+          390,
+          1
+        ],
+        "portrait": false,
+        "app": {
+          "x": 0,
+          "y": 0,
+          "width": 844,
+          "height": 390,
+          "top": 0,
+          "right": 844,
+          "bottom": 390,
+          "left": 0
+        },
+        "events": [
+          {
+            "event": "visualViewport.resize",
+            "inner": [
+              844,
+              390
+            ],
+            "layout": [
+              844,
+              390
+            ]
+          }
+        ]
+      },
+      "reloadStatus": "passed"
+    }
+  ]
+}
