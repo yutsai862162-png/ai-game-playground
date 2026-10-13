@@ -4,6 +4,12 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
 const {execFileSync}=require('node:child_process');
 const root=process.cwd(),out=path.join(root,'qa-results');fs.mkdirSync(out,{recursive:true});
 const manifest=JSON.parse(fs.readFileSync('game/assets/family/manifest.json','utf8'));
+for(const [name,hash] of Object.entries(manifest.display.files)){
+ const bytes=fs.readFileSync('game/assets/family/display/'+name);
+ assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),hash);
+ assert.equal(bytes.readUInt32BE(16),512);assert.equal(bytes.readUInt32BE(20),768);
+ assert.ok(bytes.length<500000,'mobile display image must stay below 500 KB');
+}
 for(const [name,hash] of Object.entries(manifest.files)){
  const p='game/assets/family/source/'+name,bytes=fs.readFileSync(p);
  assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),hash);
@@ -22,8 +28,8 @@ async function drain(page){for(let i=0;i<100&&await page.evaluate(()=>G.locked);
    const ctx=await browser.newContext({...devices['iPhone 13'],viewport:{width:844,height:390},locale:'zh-TW'}),page=await ctx.newPage();
    const r={engine,mode,status:'running',errors:[],events:[]};results.push(r);save();console.log('FAMILY_CASE_START '+engine+'/'+mode);page.on('pageerror',e=>{r.errors.push(e.message);save();});page.on('crash',()=>{r.events.push('page-crash');save();});
    try{
-    if(mode==='missing')await page.route('**/assets/family/source/*.png',route=>route.fulfill({status:404,body:'missing'}));
-    if(mode==='slow')await page.route('**/assets/family/source/*.png',async route=>{await new Promise(resolve=>setTimeout(resolve,1500));await route.continue();});
+    if(mode==='missing')await page.route('**/assets/family/display/*.png',route=>route.fulfill({status:404,body:'missing'}));
+    if(mode==='slow')await page.route('**/assets/family/display/*.png',async route=>{await new Promise(resolve=>setTimeout(resolve,1500));await route.continue();});
     await page.addInitScript(()=>{window.familyDraws=[];const old=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(img,...args){if((img.src||'').includes('/assets/family/'))familyDraws.push({canvas:this.canvas.id,src:img.src,args});return old.call(this,img,...args);};});
     await page.goto(base+'/game/');await page.waitForFunction(()=>Object.values(FamilyAssets.status()).every(s=>s!=='loading'));
     assert.deepEqual(Object.values(await page.evaluate(()=>FamilyAssets.status())),Array(4).fill(mode==='missing'?'load-failed':'ready'));
@@ -31,7 +37,8 @@ async function drain(page){for(let i=0;i<100&&await page.evaluate(()=>G.locked);
     if(mode!=='missing'){
      await page.waitForFunction(()=>new Set(familyDraws.filter(d=>d.canvas==='titleArt').map(d=>d.src)).size===3);
      await page.locator('#btnFamily').tap();assert.equal(await page.locator('.family-grid img').count(),4);
-     assert.ok(await page.locator('.family-grid img').evaluateAll(imgs=>imgs.every(i=>i.naturalWidth===1024&&i.naturalHeight===1536)));
+     assert.ok(await page.locator('.family-grid img').evaluateAll(imgs=>imgs.every(i=>i.naturalWidth===512&&i.naturalHeight===768)));
+     assert.ok(await page.locator('.family-grid img').evaluateAll(imgs=>imgs.every(i=>i.crossOrigin==='anonymous')));
      if(mode==='loaded')await page.screenshot({path:path.join(out,'family-'+engine+'-gallery-landscape.png')});
      await page.locator('#btnFamilyClose').tap();
     }

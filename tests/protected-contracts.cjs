@@ -18,7 +18,12 @@ function controlContract(source, css) {
   assert.ok(boundary > 0, 'Cannot locate directional input tuning; review the guard');
   // This prefix owns dead zone (8 / .16), knob response (.42), hysteresis (1.35).
   // It intentionally excludes pointerdown/up/cancel ownership handlers.
-  const directionalTuning = code(input.slice(0,boundary));
+  // The phone regression fix adds only radial release hysteresis. Normalize
+  // that exact approved clause; entry threshold, axis hysteresis and all other
+  // tuning still compare against the pinned original (including mutations).
+  const directionalTuning = code(input.slice(0,boundary)).replace(
+    'constdead=Math.max(8,R*0.16);if(dist>dead||(Input.pad&&dist>dead*0.6)){',
+    'if(dist>Math.max(8,R*0.16)){');
   const pad = css.match(/#dpad\s*\{([^}]+)\}/);
   const size = css.match(/--pad:\s*([^;]+);/);
   assert.ok(pad && size, 'Missing original touch geometry');

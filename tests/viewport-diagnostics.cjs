@@ -29,7 +29,7 @@ function matches(s,v){return s.inner[0]===v.width&&s.inner[1]===v.height&&s.layo
     }
     r.initial=await snapshot(page);assert.ok(matches(r.initial,initial),'independent initial viewport');
     if(target==='game'){
-     assert.ok(await page.evaluate(()=>document.querySelector('#familyGallery').scrollWidth<=innerWidth&&[...document.querySelectorAll('.family-grid img')].every(i=>i.complete&&i.naturalWidth===1024)));
+     assert.ok(await page.evaluate(()=>document.querySelector('#familyGallery').scrollWidth<=innerWidth&&[...document.querySelectorAll('.family-grid img')].every(i=>i.complete&&i.naturalWidth===512)));
      await page.screenshot({path:path.join(out,engine+'-'+label+'-initial.png')});
     }
     r.initialStatus='passed';const changed={width:initial.height,height:initial.width};

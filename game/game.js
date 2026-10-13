@@ -157,6 +157,7 @@ const Input = {
     return d;
   },
   reset() {
+    if (this.cancelPad) this.cancelPad();
     this.keys = []; this.pad = null; this.last = null;
     highlightPad(null);
     G.path = []; G.pathTarget = null;
@@ -179,7 +180,10 @@ function setupInput() {
     const k = dist ? (Math.min(dist, R) * 0.42) / dist : 0;
     knob.style.transform = 'translate(' + (dx * k).toFixed(1) + 'px,' + (dy * k).toFixed(1) + 'px)';
     let d = null;
-    if (dist > Math.max(8, R * 0.16)) {
+    // Keep the original entry threshold; a smaller release threshold prevents
+    // tiny thumb jitter at its edge from repeatedly stopping/restarting a step.
+    const dead = Math.max(8, R * 0.16);
+    if (dist > dead || (Input.pad && dist > dead * 0.6)) {
       // 遲滯：已經在走橫向時，要明顯往上/下才換方向，避免斜角抖動
       const ax = Math.abs(dx), ay = Math.abs(dy), cur = Input.pad, H = 1.35;
       let horiz;
@@ -195,10 +199,12 @@ function setupInput() {
   };
   dpad.addEventListener('pointerdown', (e) => {
     e.preventDefault(); Sfx.init();
+    if (G.screen !== 'game' || G.locked || !overlaysClosed()) return;
     // The finger that started the pad owns it until release/cancel. A second
     // touch must not steal its direction or make the first release ineffective.
     if (padId !== null && padId !== e.pointerId) return;
     padId = e.pointerId;
+    G.path = []; G.pathTarget = null; G.marker = null;
     dpad.classList.add('active');
     try { dpad.setPointerCapture(e.pointerId); } catch (err) { /* 舊版瀏覽器 */ }
     update(e);
@@ -206,12 +212,20 @@ function setupInput() {
   dpad.addEventListener('pointermove', (e) => { if (e.pointerId === padId) { e.preventDefault(); update(e); } });
   const end = (e) => {
     if (e.pointerId !== padId) return;
-    padId = null; Input.pad = null; highlightPad(null);
-    dpad.classList.remove('active'); knob.style.transform = '';
+    if (e.cancelable) e.preventDefault();
+    Input.cancelPad();
   };
   dpad.addEventListener('pointerup', end);
   dpad.addEventListener('pointercancel', end);
   dpad.addEventListener('lostpointercapture', end);
+  Input.cancelPad = () => {
+    const owned = padId;
+    padId = null; Input.pad = null; highlightPad(null);
+    dpad.classList.remove('active'); knob.style.transform = '';
+    if (owned !== null) { try { if (dpad.hasPointerCapture(owned)) dpad.releasePointerCapture(owned); } catch (_) {} }
+  };
+  window.addEventListener('resize', Input.cancelPad);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', Input.cancelPad);
 
   const btnA = $('#btnA');
   btnA.addEventListener('pointerdown', (e) => {
@@ -229,6 +243,8 @@ function setupInput() {
   // 點地圖：走過去；點人物或物件：走到旁邊並自動互動
   const view = $('#view');
   view.addEventListener('pointerdown', (e) => {
+    // A second finger must not queue an auto-walk behind the active thumb.
+    if (padId !== null || (e.pointerType === 'touch' && !e.isPrimary)) { e.preventDefault(); return; }
     if (G.screen !== 'game' || G.locked || !overlaysClosed() || !G.player) return;
     e.preventDefault(); Sfx.init();
     const r = view.getBoundingClientRect();

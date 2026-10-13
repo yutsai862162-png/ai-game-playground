@@ -55,8 +55,12 @@ const draws = () => {
     return original.call(this, image, ...args);
   };
 };
-async function pointTap(page, locator) {
+async function pointTap(page, locator, finishingDialogue = false) {
   const r = await locator.boundingBox();
+  // The final dialogue can disappear between isVisible() and this snapshot.
+  // Accept only the independently verified completed chapter; other missing
+  // targets still fail, and the full route checks the clear screen afterwards.
+  if (!r && finishingDialogue && await page.evaluate(()=>G.screen==='clear'&&!G.locked&&G.state.stage===4)) return;
   assert.ok(r && r.width > 0 && r.height > 0, 'tap target must be visible');
   await page.touchscreen.tap(r.x + r.width/2, r.y + r.height/2);
 }
@@ -78,7 +82,7 @@ async function advance(page) {
       page.__broShot = true;
     }
     // The typewriter text briefly has zero height. Tap its stable dialog panel.
-    await pointTap(page, page.locator('#dialog')); return;
+    await pointTap(page, page.locator('#dialog'), true); return;
   }
   await page.waitForTimeout(100);
 }

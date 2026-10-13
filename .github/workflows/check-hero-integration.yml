@@ -69,6 +69,11 @@ jobs:
         env:
           NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
         run: timeout 180s node tests/mobile-layout.cjs
+      - name: Check continuous drag, jitter and multi-touch ownership
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
+        env:
+          NODE_PATH: ${{ runner.temp }}/hero-qa/node_modules
+        run: timeout 120s node tests/touch-drag.cjs
       - name: Compare minimal and game viewport rotation
         if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
         env:
