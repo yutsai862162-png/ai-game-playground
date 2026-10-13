@@ -19,12 +19,12 @@ const watchdog=setTimeout(()=>{results.watchdog='240 second safety limit';save()
    await page.goto(results.url,{waitUntil:'domcontentloaded',timeout:45000});
    if(!await page.locator('#btnNew').count()){const button=page.getByRole('button',{name:/open the page/i}),link=page.getByRole('link',{name:/open the page/i});if(await button.count()){r.consent=await button.innerText();await button.click();}else{r.consent=await link.innerText();await link.click();}}
    await page.waitForFunction(()=>window.FamilyAssets,null,{timeout:30000});inGame=true;
-   await page.waitForFunction(()=>Object.values(FamilyAssets.status()).every(s=>s==='ready')&&HeroAssets.status().walkingReady,null,{timeout:45000});
+   await page.waitForFunction(()=>Object.values(FamilyAssets.status()).every(s=>s==='ready')&&HeroAssets.status().walkingReady&&HeroAssets.status().loaded===22,null,{timeout:45000});
    r.family=await page.evaluate(()=>FamilyAssets.status());r.hero=await page.evaluate(()=>HeroAssets.status());
    await page.locator('#btnNew').tap();for(let i=0;i<100&&await page.evaluate(()=>G.locked);i++){if(await page.locator('#dialogLayer').isVisible())await page.locator('#dialog').tap();await page.waitForTimeout(90);}await page.waitForFunction(()=>!G.locked);
    r.mapDraws=await page.evaluate(()=>familyMapDraws);assert.ok(Object.keys(r.mapDraws).some(u=>u.endsWith('/mom.png')),'mother actually drawn in map');assert.ok(Object.keys(r.mapDraws).some(u=>u.endsWith('/sister.png')),'sister actually drawn in map');
    r.pad=await page.locator('.dpad-vis').evaluate(el=>getComputedStyle(el).opacity);assert.equal(r.pad,'0');await page.screenshot({path:path.join(out,'display-map-'+engine+'.png')});
-   await page.locator('#btnHome').tap();await page.locator('#btnFamily').tap();assert.ok(await page.locator('.family-grid img').evaluateAll(a=>a.length===4&&a.every(i=>i.complete&&i.naturalWidth===512&&i.naturalHeight===768&&i.crossOrigin==='anonymous')));await page.screenshot({path:path.join(out,'display-gallery-'+engine+'.png')});
+   await page.locator('#btnHome').tap();await page.locator('#confirmOk').tap();await page.locator('#btnFamily').tap();assert.ok(await page.locator('.family-grid img').evaluateAll(a=>a.length===4&&a.every(i=>i.complete&&i.naturalWidth===512&&i.naturalHeight===768&&i.crossOrigin==='anonymous')));await page.screenshot({path:path.join(out,'display-gallery-'+engine+'.png')});
    assert.deepEqual(r.errors,[]);r.status='passed';
   }catch(e){r.status='failed';r.failure=e.stack;r.state=await bounded(()=>page.evaluate(()=>({family:window.FamilyAssets?.status(),hero:window.HeroAssets?.status(),mapDraws:window.familyMapDraws}))).catch(x=>({unavailable:x.message}));}
   finally{save();console.log(JSON.stringify(r));await bounded(()=>browser.close(),5000).catch(e=>{r.closeError=e.message;save();});}
