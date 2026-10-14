@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>宅男勇者｜像素客廳原型</title><link rel="stylesheet" href="style.css"></head>
+<body><main id="app">
+<header><div><b>宅男勇者</b><span>人生副本 · 客廳</span></div><button id="help" aria-label="操作說明">?</button></header>
+<div id="stage"><canvas id="world" width="640" height="384" aria-label="可探索的像素客廳"></canvas></div>
+<div id="quest" aria-live="polite"></div><div id="hint"></div>
+<div id="pad" role="group" aria-label="隱形方向控制區"></div><button id="action" aria-label="互動或繼續對話">A<span>調查</span></button>
+<section id="dialog" hidden aria-live="polite"><canvas id="portrait" width="64" height="96" aria-hidden="true" hidden></canvas><b id="speaker"></b><p id="line"></p><div id="choices"></div><small id="next">點對話框或 A 繼續 ▾</small></section>
+<section id="welcome" class="overlay"><div class="panel"><span class="eyebrow">LOCAL PLAYABLE PROTOTYPE</span><h1>宅男勇者的<br>人生副本</h1><p>客廳 · 像素玩法原型</p><button id="start">進入客廳</button><p class="instructions">左下空白區按住、滑動移動，放開停止。<br>靠近家人或家具，按右下 A。<br>鍵盤：方向鍵／WASD，Enter／空白鍵互動。</p><small>程式像素暫代美術 · 不代表最終角色設計<br>沿用原劇情；本輪不開放客廳以外場景。</small></div></section>
+<aside id="notice" hidden role="status"></aside><footer>PIXEL STUDY / 02 · 暫代美術</footer>
+</main><script src="../game/story.js"></script><script src="art.js"></script><script src="pixel.js"></script></body></html>
